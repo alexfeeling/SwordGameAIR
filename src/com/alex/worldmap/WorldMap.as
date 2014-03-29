@@ -61,8 +61,11 @@ package com.alex.worldmap
 		///地图块垂直最大存放对象个数
 		public static var BLOCK_Y_SIZE:int;
 		
-		public static var STAGE_WIDTH:Number = 1024;
-		public static var STAGE_HEIGHT:Number = 768;
+		public static var STAGE_WIDTH:int = 1024;
+		public static var STAGE_HEIGHT:int = 768;
+		
+		public static var STAGE_HALF_WIDTH:int = 512;
+		public static var STAGE_HALF_HEIGHT:int = 384;
 		
 		///存放地图背景图片sprite
 		private var _mapImageSp:Sprite;
@@ -75,21 +78,16 @@ package com.alex.worldmap
 		
 		public function WorldMap()
 		{
-			if (_instance != null)
-			{
-				throw "WorldMap已经有单例对象，不可再实例化";
-			}
-			init();
+			if (_instance != null) throw "WorldMap已经有单例对象，不可再实例化";
+			this.addEventListener(Event.ADDED_TO_STAGE, init);
 		}
 		
 		private static var _instance:WorldMap;
 		
 		public static function getInstance():WorldMap
 		{
-			if (_instance == null)
-			{
-				_instance = new WorldMap();
-			}
+			if (_instance == null) throw "error";
+			
 			return _instance;
 		}
 		
@@ -97,43 +95,54 @@ package com.alex.worldmap
 		{
 			STAGE_WIDTH = (event.target as Stage).stageWidth;
 			STAGE_HEIGHT = (event.target as Stage).stageHeight;
-			this.refreshMapPosition(this._mainRole);
+			STAGE_HALF_WIDTH = STAGE_WIDTH >> 1;
+			STAGE_HALF_HEIGHT = STAGE_HEIGHT >> 1;
+			this.refreshMapPosition(_mainRole);
 		}
 		
 		public function get mainRole():MainRole {
 			return this._mainRole;
 		}
 		
-		private function init():void
+		private function init(event:Event):void
 		{
+			if (_instance != null) throw "WorldMap已经有单例对象，不可再实例化";
+			_instance = this;
+			
+			this.removeEventListener(Event.ADDED_TO_STAGE, init);
+			stage.addEventListener(Event.RESIZE, onStageChange);
+			
+			STAGE_WIDTH = stage.stageWidth;
+			STAGE_HEIGHT = stage.stageHeight;
+			STAGE_HALF_WIDTH = STAGE_WIDTH >> 1;
+			STAGE_HALF_HEIGHT = STAGE_HALF_HEIGHT >> 1;
+			
 			_allMapGridDic = new Dictionary();
-			//_allMapBlockDic = new Dictionary();
+			_allOtherDisplay = new Dictionary();
+			
 			BLOCK_X_SIZE = 8; //Math.ceil(this.stageWidth / WorldMap.GRID_WIDTH);
 			BLOCK_Y_SIZE = 8; //Math.ceil(this.stageHeight / WorldMap.GRID_HEIGHT);
 			
 			_mapImageSp = new Sprite();
 			_mapGridItemSp = new Sprite();
-			this.addChild(_mapImageSp);
-			this.addChild(_mapGridItemSp);
-			
-			_allOtherDisplay = new Dictionary();
-			
-			this.loadMapBlock(0, 0);
-			this.loadMapBlock(0, 1);
-			this.loadMapBlock(1, 0);
-			this.loadMapBlock(1, 1);
+			addChild(_mapImageSp);
+			addChild(_mapGridItemSp);
 			
 			Commander.registerExecutor(this);
 			AnimationManager.addToAnimationList(this);
+			
+			loadMapBlock(0, 0);
+			loadMapBlock(0, 1);
+			loadMapBlock(1, 0);
+			loadMapBlock(1, 1);
 		}
 		
 		private function initData(mapData:String):void
 		{
 			var mapDataList:Array = JSON.parse(mapData) as Array;
 			if (mapDataList == null && mapDataList.length < 1)
-			{
 				return;
-			}
+			
 			var newBlockX:int = int(mapDataList[0].blockX);
 			var newBlockY:int = int(mapDataList[0].blockY);
 			
@@ -145,27 +154,19 @@ package com.alex.worldmap
 			{
 				var mapGridObj:Object = mapDataList[i];
 				if (mapGridObj.ignore == 1 || mapGridObj.gridX >= BLOCK_X_SIZE || mapGridObj.gridY >= BLOCK_Y_SIZE)
-				{
 					continue;
-				}
+				
 				var differBlockXNum:int = (newBlockX - MIDDLE_BLOCK_X) * BLOCK_X_SIZE;
 				var differBlockYNum:int = (newBlockY - MIDDLE_BLOCK_Y) * BLOCK_Y_SIZE;
 				if (mapGridObj.gridX != null && mapGridObj.gridY != null)
 				{
 					var position:Position = Position.make(newBlockX * BLOCK_X_SIZE + int(mapGridObj.gridX), newBlockY * BLOCK_Y_SIZE + int(mapGridObj.gridY));
 					if (mapGridObj.insideX != null)
-					{
 						position.insideX = mapGridObj.insideX;
-					}
 					if (mapGridObj.insideY != null)
-					{
 						position.insideY = mapGridObj.insideY;
-					}
 				}
-				else
-				{
-					continue;
-				}
+				else continue;
 				switch (mapGridObj.type)
 				{
 					//case "wall": //墙格，无法通过的无形障碍格
@@ -180,15 +181,12 @@ package com.alex.worldmap
 						this._allOtherDisplay[displayItem.id] = displayItem;
 						break;
 					case "main_role": //主角
-						if (this._mainRole != null)
-						{
-							throw "error";
-						}
+						if (this._mainRole != null) throw "error";
 						this._mainRole = MainRole.make(position); //new MainRole().init(position); // InstancePool.getMainRole(position);
 						this.addGridItem(this._mainRole);
 						this._mapGridItemSp.addChild(this._mainRole.toDisplayObject());
-						var mapX:Number = (STAGE_WIDTH >> 1) - this._mainRole.toDisplayObject().x;
-						var mapY:Number = (STAGE_HEIGHT >> 1) - this._mainRole.toDisplayObject().y;
+						var mapX:Number = STAGE_HALF_WIDTH - this._mainRole.toDisplayObject().x;
+						var mapY:Number = STAGE_HALF_HEIGHT - this._mainRole.toDisplayObject().y;
 						this.x = mapX;
 						this.y = mapY;
 						break;
@@ -264,32 +262,29 @@ package com.alex.worldmap
 		
 		public function getGridItemDic(vGridX:int, vGridY:int):Dictionary
 		{
-			if (this._allMapGridDic[vGridX] == null)
-			{
-				return null;
-			}
+			if (this._allMapGridDic[vGridX] == null) return null;
+			
 			return this._allMapGridDic[vGridX][vGridY] as Dictionary;
 		}
 		
 		public function addGridItem(vItem:IPhysics):void
 		{
 			if (!vItem) return;
+			
 			var position:Position = vItem.position;
 			if (!position) return;
+			
 			if (this._allMapGridDic[position.gridX] == null)
 			{
 				this._allMapGridDic[position.gridX] = new Dictionary();
 				this._allMapGridDic[position.gridX][position.gridY] = new Dictionary();
 			}
 			else if (this._allMapGridDic[position.gridX][position.gridY] == null)
-			{
 				this._allMapGridDic[position.gridX][position.gridY] = new Dictionary();
-			}
+			
 			this._allMapGridDic[position.gridX][position.gridY][vItem.id] = vItem;
 			if (vItem is IDisplay)
-			{
 				(vItem as IDisplay).refreshDisplayXY();
-			}
 		}
 		
 		public function removeGridItem(vItem:IPhysics):void
@@ -322,19 +317,16 @@ package com.alex.worldmap
 		public function refreshGridItem(vItem:IPhysics, vOrginGridX:int, vOrginGridY:int):void
 		{
 			if (vItem.position.gridX == vOrginGridX && vItem.position.gridY == vOrginGridY)
-			{
 				return;
-			}
+			
 			var itemDic:Dictionary = getGridItemDic(vOrginGridX, vOrginGridY);
 			if (!itemDic)
 			{
 				throw "error";
 				return;
 			}
-			if (itemDic[vItem.id] != vItem)
-			{
-				throw "error";
-			}
+			if (itemDic[vItem.id] != vItem) throw "error";
+			
 			delete itemDic[vItem.id];
 			addGridItem(vItem);
 		}
@@ -468,13 +460,10 @@ package com.alex.worldmap
 		//整个地图对象的新位置
 		private function refreshMapPosition(item:IDisplay):void
 		{
-			if (!item)
-			{
-				throw "item 不可为空";
-			}
+			if (!item) return;// throw "item 不可为空";
 			//整个地图对象的新位置
-			var mapX:Number = (STAGE_WIDTH >> 1) - item.toDisplayObject().x;
-			var mapY:Number = (STAGE_HEIGHT >> 1) - item.toDisplayObject().y + item.position.elevation;
+			var mapX:Number = STAGE_HALF_WIDTH - item.toDisplayObject().x;
+			var mapY:Number = STAGE_HALF_HEIGHT - item.toDisplayObject().y + item.position.elevation;
 			this.x = mapX;
 			this.y = mapY;
 		}
@@ -499,9 +488,8 @@ package com.alex.worldmap
 			var width2:Number = vItemB.physicsComponent.width;
 			var height2:Number = vItemB.physicsComponent.height;
 			if (Math.abs(gx1 - gx2) < int((length1 + length2) >> 1) && Math.abs(gy1 - gy2) < int((width1 + width2) >> 1) && ((ele2 < height1 + ele1) && (ele1 < height2 + ele2)))
-			{
 				return true;
-			}
+			
 			return false;
 		}
 		
@@ -527,14 +515,11 @@ package com.alex.worldmap
 			for each (var display:IAnimation in this._allOtherDisplay)
 			{
 				if (display)
-				{
 					display.gotoNextFrame(passedTime);
-				}
 			}
+			
 			if (_mapGridItemSp.numChildren > 1)
-			{
 				displayQuickSort(0, _mapGridItemSp.numChildren - 1);
-			}
 		}
 		
 		///显示对象深度排序

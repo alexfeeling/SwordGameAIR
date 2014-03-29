@@ -38,6 +38,7 @@ package com.alex.skill
 			{
 				_skillKeyDic[skillKey[i]] = skillName[i];
 			}
+			Commander.registerExecutor(this);
 		}
 		
 		private static var _instance:SkillManager;

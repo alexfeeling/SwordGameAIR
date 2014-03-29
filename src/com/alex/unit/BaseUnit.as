@@ -73,9 +73,7 @@ package com.alex.unit
 			{
 				case OrderConst.CHANGE_FACE_DIRECTION: 
 					if (orderParam == 1 || orderParam == -1)
-					{
 						this._body.scaleX = orderParam as int;
-					}
 					break;
 				case OrderConst.MAP_ITEM_MOVE: 
 					this.move(orderParam[0], orderParam[1]);
@@ -134,20 +132,16 @@ package com.alex.unit
 		
 		public function refreshDisplayXY():void
 		{
-			if (this._isRelease || this.position == null)
-			{
-				return;
-			}
+			if (this._isRelease || this.position == null) return;
+			
 			this._displayObject.x = position.gridX * WorldMap.GRID_WIDTH + position.insideX;
 			this._displayObject.y = position.gridY * WorldMap.GRID_HEIGHT + position.insideY;
 		}
 		
 		public function release():void
 		{
-			if (this._isRelease)
-			{
-				throw "release error";
-			}
+			if (this._isRelease) throw "release error";
+			
 			Commander.sendOrder(OrderConst.REMOVE_ITEM_FROM_WORLD_MAP, this);
 			Commander.cancelExecutor(this);
 			if (this._physicsComponent)
@@ -166,9 +160,7 @@ package com.alex.unit
 			this._body = null;
 			this._shadow = null;
 			if (this._displayObject.parent)
-			{
 				this._displayObject.parent.removeChild(this._displayObject);
-			}
 			this._displayObject = null;
 			this._id = null;
 			this._isRelease = true;
@@ -247,9 +239,7 @@ package com.alex.unit
 					{
 						collidedUnit = targetUnit;
 						this.collide(targetUnit, direction);
-						if (this.isRelease()) {
-							return null;
-						}
+						if (this.isRelease()) return null;
 					}
 				}
 			}
