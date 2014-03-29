@@ -39,13 +39,14 @@ package com.alex.game
 			InstancePool.preset(Tree, 20);
 			InstancePool.preset(PhysicsComponent, 20);
 			
-			Commander.registerExecutor(SkillManager.getInstance());
 			//启动动画管理器
 			AnimationManager.startUp(60);
-			//添加动画
-			AnimationManager.addToAnimationList(new KeyboardController(stage));
+			new SkillManager();
 			
-			var worldMap:WorldMap = WorldMap.getInstance();
+			//添加动画
+			new KeyboardController(stage);
+			
+			var worldMap:WorldMap = new WorldMap();
 			this.addChild(worldMap);
 			
 		}

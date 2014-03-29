@@ -445,7 +445,7 @@ package com.alex.component
 		///运行移动，需要每帧运行
 		public function run(passedTime:Number, isFocus:Boolean = false):void
 		{
-			if (!(this._displayObj is MainRole))
+			/*if (!(this._displayObj is MainRole))
 			{
 				//不在屏幕内的不更新
 				var disObj:DisplayObject = this._displayObj.toDisplayObject();
@@ -454,7 +454,7 @@ package com.alex.component
 				{
 					return;
 				}
-			}
+			}*/
 			var tempTime:Number = passedTime / 100;
 			//=============垂直方向运动=============
 			this._moveOnZ(passedTime, tempTime, isFocus);

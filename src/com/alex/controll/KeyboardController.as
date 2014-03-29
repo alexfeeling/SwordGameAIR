@@ -1,5 +1,6 @@
 package com.alex.controll 
 {
+	import com.alex.animation.AnimationManager;
 	import com.alex.animation.IAnimation;
 	import com.alex.constant.OrderConst;
 	import com.alex.constant.MoveDirection;
@@ -87,8 +88,8 @@ package com.alex.controll
 			_keyCombinBox = "";
 			_keyStayTime = -1;
 			_keyStayOverTime = 170;
-			this._stage.addEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
-			this._stage.addEventListener(KeyboardEvent.KEY_UP, this.onKeyRelease);
+			_stage.addEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
+			_stage.addEventListener(KeyboardEvent.KEY_UP, this.onKeyRelease);
 			if (KEY_CODE_TO_KEY_CHAR == null) {
 				KEY_CODE_TO_KEY_CHAR = new Dictionary();
 				KEY_CODE_TO_KEY_CHAR[KEY_I] = "I";
@@ -96,6 +97,7 @@ package com.alex.controll
 				KEY_CODE_TO_KEY_CHAR[KEY_K] = "K";
 				KEY_CODE_TO_KEY_CHAR[KEY_L] = "L";
 			}
+			AnimationManager.addToAnimationList(this);
 		}
 		
 		private function onKeyDown(event:KeyboardEvent):void {

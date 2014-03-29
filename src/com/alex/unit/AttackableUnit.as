@@ -81,16 +81,12 @@ package com.alex.unit
 		public function startAttack(vSkillName:String):void
 		{
 			//trace(vSkillName);
-			if (this._isDying || _currentSkillData)
-			{
-				return;
-			}
+			if (this._isDying || _currentSkillData) return;
+			
 			_currentSkillData = new SkillOperator(this, _allSkillDic[vSkillName]);
-			if (!_currentSkillData)
-			{
-				//无此技能
-				return;
-			}
+			//无此技能
+			if (!_currentSkillData) return;
+				
 			_attackCube = _currentSkillData.getAttackCube();
 			for each (var target:AttackableUnit in searchTarget(_currentSkillData.maxImpactNum))
 			{
@@ -133,16 +129,12 @@ package com.alex.unit
 			if (hurtObj.yImpact)
 			{
 				if (hurtObj.yImpact > 0)
-				{
 					this._physicsComponent.forceImpact(MoveDirection.Y_DOWN, hurtObj.yImpact, true);
-				} else {
+				else
 					this._physicsComponent.forceImpact(MoveDirection.Y_UP, hurtObj.yImpact, true);
-				}
 			}
 			if (hurtObj.zImpact)
-			{
 				this._physicsComponent.forceImpact(MoveDirection.Z_TOP, hurtObj.zImpact, true);
-			}
 			//this.toDisplayObject().alpha = 0.5;
 		}
 		
@@ -150,18 +142,28 @@ package com.alex.unit
 		private function searchTarget(maxTargetNum:int = 1):Vector.<AttackableUnit>
 		{
 			var detectList:Array;
-			if (this.physicsComponent.faceDirection == -1)
-			{
-				detectList = [WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY), WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY - 1), WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY + 1), WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY), WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY - 1), WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY + 1), WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY), WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY - 1), WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY + 1)];
-			}
-			else if (this.physicsComponent.faceDirection == 1)
-			{
-				detectList = [WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY), WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY - 1), WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY + 1), WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY), WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY - 1), WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY + 1), WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY), WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY - 1), WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY + 1)];
-			}
-			else
-			{
-				throw "faceDirection error";
-			}
+			if (this.physicsComponent.faceDirection == -1) {
+				detectList = [WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY), 
+							WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY - 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY + 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY), 
+							WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY - 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY + 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY), 
+							WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY - 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY + 1)];
+			} else if (this.physicsComponent.faceDirection == 1) {
+				detectList = [WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY), 
+							WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY - 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY + 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY), 
+							WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY - 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY + 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY), 
+							WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY - 1), 
+							WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY + 1)];
+			} else throw "faceDirection error";
+			
 			var targetList:Vector.<AttackableUnit> = new Vector.<AttackableUnit>();
 			for (var i:int = 0; i < detectList.length; i++)
 			{
@@ -173,16 +175,13 @@ package com.alex.unit
 				for each (var detectTarget:IPhysics in gridItemDic)
 				{
 					if (!detectTarget || detectTarget==this || detectTarget.physicsComponent.physicsType != PhysicsType.SOLID)
-					{
 						continue;
-					}
+					
 					if (_attackCube.intersects(detectTarget.physicsComponent.toCube()))
 					{
 						targetList.push(detectTarget);
 						if (--maxTargetNum <= 0)
-						{
 							return targetList;
-						}
 					}
 				}
 			}
@@ -227,7 +226,6 @@ package com.alex.unit
 		
 		public function attackEnd():void
 		{
-			//this._attackTarget = null;
 			this._attackCube = null;
 			this._currentSkillData = null;
 			if (this._catchingUnit) {
@@ -266,7 +264,6 @@ package com.alex.unit
 			super.release();
 			this._attackCube = null;
 			this._currentSkillData = null;
-			//this._attackTarget = null;
 			this._rangeOfVision = null;
 			this._isDying = false;
 			this._allSkillDic = null;
@@ -306,7 +303,6 @@ package com.alex.unit
 			if (this._currentSkillData) 
 			{
 				this._currentSkillData.run(passedTime);
-				
 			}
 		}
 	
