@@ -2,3 +2,5 @@
 /*.as3proj
 /air
 /obj
+/bin/*.swf
+/bat/SetupSDK.bat
