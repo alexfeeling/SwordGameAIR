@@ -1,4 +1,4 @@
-package com.alex.component 
+package com.alex.core.component 
 {
 	/**
 	 * ...

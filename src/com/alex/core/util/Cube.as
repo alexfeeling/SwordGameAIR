@@ -1,4 +1,4 @@
-package com.alex.util
+package com.alex.core.util
 {
 	
 	/**
@@ -16,6 +16,16 @@ package com.alex.util
 		private var _height:int;
 		
 		public function Cube(x:int = 0, y:int = 0, z:int = 0, length:int = 1, width:int = 1, height:int = 1)
+		{
+			_x = x;
+			_y = y;
+			_z = z;
+			_length = length;
+			_width = width;
+			_height = height;
+		}
+		
+		public function refresh(x:int = 0, y:int = 0, z:int = 0, length:int = 1, width:int = 1, height:int = 1):void
 		{
 			_x = x;
 			_y = y;

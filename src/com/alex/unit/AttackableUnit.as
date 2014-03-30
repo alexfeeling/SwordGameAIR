@@ -1,19 +1,18 @@
 package com.alex.unit
 {
-	import com.alex.animation.AnimationManager;
-	import com.alex.animation.AttributeAnimation;
-	import com.alex.component.AttributeComponent;
-	import com.alex.component.PhysicsComponent;
-	import com.alex.constant.MoveDirection;
 	import com.alex.constant.OrderConst;
-	import com.alex.constant.PhysicsType;
-	import com.alex.display.IAttribute;
-	import com.alex.display.IPhysics;
+	import com.alex.core.animation.AnimationManager;
+	import com.alex.core.animation.AttributeAnimation;
+	import com.alex.core.component.AttributeComponent;
+	import com.alex.core.component.MoveDirection;
+	import com.alex.core.component.PhysicsType;
+	import com.alex.core.display.IAttribute;
+	import com.alex.core.display.IDisplay;
+	import com.alex.core.util.Cube;
+	import com.alex.core.world.World;
+	import com.alex.skill.SkillFrameData;
 	import com.alex.skill.SkillOperator;
 	import com.alex.unit.BaseUnit;
-	import com.alex.util.Cube;
-	import com.alex.worldmap.Position;
-	import com.alex.worldmap.WorldMap;
 	import flash.display.DisplayObject;
 	import flash.display.Shape;
 	import flash.geom.Rectangle;
@@ -39,11 +38,18 @@ package com.alex.unit
 		///视线范围
 		private var _rangeOfVision:Rectangle;
 		
-		private var _currentSkillData:SkillOperator;
+		///当前技能运作对象
+		private var _currentSkillOperator:SkillOperator;
 		
+		///本单位掌握的技能
 		private var _allSkillDic:Dictionary;
 		
 		private var _attributeComponent:AttributeComponent;
+		
+		///被抓举的单位
+		private var _catchingUnit:AttackableUnit;
+		
+		private var _lockingTarget:AttackableUnit;
 		
 		///是否正在死亡
 		protected var _isDying:Boolean = false;
@@ -57,38 +63,54 @@ package com.alex.unit
 		{
 			this._attributeComponent = attributeComponent;
 			_allSkillDic = new Dictionary();
-			_allSkillDic["刺"] = [null, null, null, { type:"hurt", lifeHurt:50, xImpact: -30, zImpact:40 }, null, null, { type:"hurt", lifeHurt:50, xImpact:100, yImpact:50, zImpact: -40 }, null, null, { type:"end" } ];
-			_allSkillDic["南剑诀"] = [null, null, null, { type:"distance", distanceId:"d1", lifeHurt:30, xImpact: 50, zImpact:20 }, null, null, { type:"distance", distanceId:"d1", lifeHurt:30, xImpact: -100, zImpact: -40 }, null, null, { type:"end" } ];
-			_allSkillDic["升"] = [null, null, 
-									//{type:"catch", elevation:20}, null,null,
-									{type:"catch", elevation:50, x:50 }, null,
-									//{type:"catch", elevation:60, x:40 }, //null,null,
-									//{type:"catch", elevation:70, x:30 }, //null,null,
-									{type:"catch", elevation:80, x:0 }, null,
-									//{type:"catch", elevation:70, x:-40 }, //null,null,
-									{type:"catch", elevation:50, x:-50 }, null,
-									//{type:"catch", elevation:30, x:-80 },  //null,null,
-									{type:"catch", elevation:0, x: -100 }, null,
-									//{type:"catch", elevation:30, x: -80 },  //null,null,
-									{type:"catch", elevation:50, x: -50 }, null,
-									//{type:"catch", elevation:70, x: -40 }, //null,null,
-									{type:"catch", elevation:80, x:0 }, null,
-									{ type:"hurt_catch", lifeHurt:50, xImpact:100, zImpact: -40, releaseCatch:true },
-									null, { type:"end" } ];
-			_allSkillDic["穿心"] = [{type:"lockTarget"},null, null, null, {type:"hurt_target"}];
+			_allSkillDic["刺"] = new <SkillFrameData>[null, null, null, 
+				SkillFrameData.make().initByObj({ type:"hurt", lifeHurt:50, xImpact: -30, zImpact:40 }), null, null, 
+				SkillFrameData.make().initByObj({ type:"hurt", lifeHurt:50, xImpact:100, yImpact:50, zImpact: -40 }), null, null, 
+				SkillFrameData.make().initByObj( { type:"end" } ) ];
+
+			_allSkillDic["南剑诀"] = new <SkillFrameData>[null, null, null, 
+				SkillFrameData.make().initByObj({ type:"distance", distanceId:"d1", speed:40, weight:10, lifeHurt:30, xImpact: 50, zImpact:20 }), null, null, 
+				SkillFrameData.make().initByObj({ type:"distance", distanceId:"d1", speed:30, weight:10, lifeHurt:30, xImpact: -100, zImpact: -40 }), null, null, 
+				SkillFrameData.make().initByObj( { type:"end" } ) ];
+			
+			_allSkillDic["升"] = new <SkillFrameData>[null, null, 
+				//{type:"catch", elevation:20}, null,null,
+				SkillFrameData.make().initByObj( { type:"catch", catchZ:50, catchX:50 } ), null,
+				//{type:"catch", elevation:60, x:40 }, //null,null,
+				//{type:"catch", elevation:70, x:30 }, //null,null,
+				SkillFrameData.make().initByObj( { type:"catch", catchZ:80, catchX:0 } ), null,
+				//{type:"catch", elevation:70, x:-40 }, //null,null,
+				SkillFrameData.make().initByObj( { type:"catch", catchZ:50, catchX: -50 } ), null,
+				//{type:"catch", elevation:30, x:-80 },  //null,null,
+				SkillFrameData.make().initByObj( { type:"catch", catchZ:0, catchX: -100 } ), null,
+				//{type:"catch", elevation:30, x: -80 },  //null,null,
+				SkillFrameData.make().initByObj( { type:"catch", catchZ:50, catchX: -50 } ), null,
+				//{type:"catch", elevation:70, x: -40 }, //null,null,
+				SkillFrameData.make().initByObj( { type:"catch", catchZ:80, catchX:0 } ), null,
+				SkillFrameData.make().initByObj( { type:"hurt_catch", lifeHurt:50, xImpact:100, zImpact: -40, releaseCatch:true } ), null, 
+				SkillFrameData.make().initByObj( { type:"end" } ) ];
+				
+			_allSkillDic["穿心"] = new <SkillFrameData>[
+				SkillFrameData.make().initByObj( { type:"lockTarget" } ), null, null, null, 
+				SkillFrameData.make().initByObj( { type:"hurt_target" } ), null,
+				SkillFrameData.make().initByObj( { type:"end" } )];
 		}
 		
+		/**
+		 * 开始攻击
+		 * @param	vSkillName
+		 */
 		public function startAttack(vSkillName:String):void
 		{
 			//trace(vSkillName);
-			if (this._isDying || _currentSkillData) return;
+			if (this._isDying || _currentSkillOperator) return;
 			
-			_currentSkillData = new SkillOperator(this, _allSkillDic[vSkillName]);
+			_currentSkillOperator = new SkillOperator(this, _allSkillDic[vSkillName]);
 			//无此技能
-			if (!_currentSkillData) return;
+			if (!_currentSkillOperator) return;
 				
-			_attackCube = _currentSkillData.getAttackCube();
-			for each (var target:AttackableUnit in searchTarget(_currentSkillData.maxImpactNum))
+			_attackCube = _currentSkillOperator.getAttackCube();
+			for each (var target:AttackableUnit in searchTarget(_currentSkillOperator.maxImpactNum))
 			{
 				target.receiveAttackNotice(this);
 			}
@@ -111,57 +133,61 @@ package com.alex.unit
 		}
 		
 		/**
-		 * 接收攻击
-		 * @param	vAttacker 攻击者
-		 * @param	vSkillData 技能数据
+		 * 接收攻击伤害
+		 * @param	attacker 攻击者
+		 * @param	hurtObj 技能数据
 		 */
-		public function receiveAttackHurt(attacker:AttackableUnit, hurtObj:Object):void
+		public function receiveAttackHurt(attacker:AttackableUnit, frameData:SkillFrameData):void
 		{
-			if (!this._isDying && hurtObj.lifeHurt)
+			if (!this._isDying && frameData.lifeHurt)
 			{
-				this._attributeComponent.life -= hurtObj.lifeHurt;
+				this._attributeComponent.life -= frameData.lifeHurt;
 			}
-			if (hurtObj.xImpact)
+			if (frameData.xImpact)
 			{
 				this._physicsComponent.forceImpact(attacker.physicsComponent.faceDirection == 1?MoveDirection.X_RIGHT:MoveDirection.X_LEFT, 
-					hurtObj.xImpact, true);
+					frameData.xImpact, true);
 			}
-			if (hurtObj.yImpact)
+			if (frameData.yImpact)
 			{
-				if (hurtObj.yImpact > 0)
-					this._physicsComponent.forceImpact(MoveDirection.Y_DOWN, hurtObj.yImpact, true);
+				if (frameData.yImpact > 0)
+					this._physicsComponent.forceImpact(MoveDirection.Y_DOWN, frameData.yImpact, true);
 				else
-					this._physicsComponent.forceImpact(MoveDirection.Y_UP, hurtObj.yImpact, true);
+					this._physicsComponent.forceImpact(MoveDirection.Y_UP, frameData.yImpact, true);
 			}
-			if (hurtObj.zImpact)
-				this._physicsComponent.forceImpact(MoveDirection.Z_TOP, hurtObj.zImpact, true);
+			if (frameData.zImpact)
+				this._physicsComponent.forceImpact(MoveDirection.Z_TOP, frameData.zImpact, true);
 			//this.toDisplayObject().alpha = 0.5;
 		}
 		
-		///查找攻击目标
+		/**
+		 * 查找攻击目标
+		 * @param	maxTargetNum
+		 * @return
+		 */
 		private function searchTarget(maxTargetNum:int = 1):Vector.<AttackableUnit>
 		{
 			var detectList:Array;
 			if (this.physicsComponent.faceDirection == -1) {
-				detectList = [WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY), 
-							WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY - 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY + 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY), 
-							WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY - 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX - 1, position.gridY + 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY), 
-							WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY - 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX - 2, position.gridY + 1)];
+				detectList = [World.getInstance().getGridItemDic(position.gridX, position.gridY), 
+							World.getInstance().getGridItemDic(position.gridX, position.gridY - 1), 
+							World.getInstance().getGridItemDic(position.gridX, position.gridY + 1), 
+							World.getInstance().getGridItemDic(position.gridX - 1, position.gridY), 
+							World.getInstance().getGridItemDic(position.gridX - 1, position.gridY - 1), 
+							World.getInstance().getGridItemDic(position.gridX - 1, position.gridY + 1), 
+							World.getInstance().getGridItemDic(position.gridX - 2, position.gridY), 
+							World.getInstance().getGridItemDic(position.gridX - 2, position.gridY - 1), 
+							World.getInstance().getGridItemDic(position.gridX - 2, position.gridY + 1)];
 			} else if (this.physicsComponent.faceDirection == 1) {
-				detectList = [WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY), 
-							WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY - 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX, position.gridY + 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY), 
-							WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY - 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX + 1, position.gridY + 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY), 
-							WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY - 1), 
-							WorldMap.getInstance().getGridItemDic(position.gridX + 2, position.gridY + 1)];
+				detectList = [World.getInstance().getGridItemDic(position.gridX, position.gridY), 
+							World.getInstance().getGridItemDic(position.gridX, position.gridY - 1), 
+							World.getInstance().getGridItemDic(position.gridX, position.gridY + 1), 
+							World.getInstance().getGridItemDic(position.gridX + 1, position.gridY), 
+							World.getInstance().getGridItemDic(position.gridX + 1, position.gridY - 1), 
+							World.getInstance().getGridItemDic(position.gridX + 1, position.gridY + 1), 
+							World.getInstance().getGridItemDic(position.gridX + 2, position.gridY), 
+							World.getInstance().getGridItemDic(position.gridX + 2, position.gridY - 1), 
+							World.getInstance().getGridItemDic(position.gridX + 2, position.gridY + 1)];
 			} else throw "faceDirection error";
 			
 			var targetList:Vector.<AttackableUnit> = new Vector.<AttackableUnit>();
@@ -172,7 +198,7 @@ package com.alex.unit
 				{
 					continue;
 				}
-				for each (var detectTarget:IPhysics in gridItemDic)
+				for each (var detectTarget:IDisplay in gridItemDic)
 				{
 					if (!detectTarget || detectTarget==this || detectTarget.physicsComponent.physicsType != PhysicsType.SOLID)
 						continue;
@@ -188,7 +214,12 @@ package com.alex.unit
 			return targetList;
 		}
 		
-		public function attackHurt(hurtObj:Object, attackCube:Cube = null):void
+		/**
+		 * 攻击伤害
+		 * @param	hurtObj
+		 * @param	attackCube
+		 */
+		public function attackHurt(frameData:SkillFrameData, attackCube:Cube = null):void
 		{
 			if (_catchingUnit) {
 				_catchingUnit.physicsComponent.isBeingCatched = false;
@@ -196,64 +227,87 @@ package com.alex.unit
 			}
 			if (attackCube)
 				this._attackCube = attackCube;
-			for each (var target:AttackableUnit in searchTarget(_currentSkillData.maxImpactNum))
+			for each (var target:AttackableUnit in searchTarget(_currentSkillOperator.maxImpactNum))
 			{
-				target.receiveAttackHurt(this, hurtObj);
+				target.receiveAttackHurt(this, frameData);
 			}
 		}
 		
-		private var _lockingTarget:AttackableUnit;
-		public function locakTarget(attackCube:Cube):void {
+		/**
+		 * 锁定一个目标单位
+		 * @param	attackCube
+		 */
+		public function lockTarget(attackCube:Cube):void {
 			if (attackCube) this._attackCube = attackCube;
 			_lockingTarget = searchTarget(1)[0];
 		}
 		
-		public function hurtLockingTarget(hurtObj:Object):void {
+		public function hurtLockingTarget(frameData:SkillFrameData):void {
 			if (_lockingTarget) {
-				_lockingTarget.receiveAttackHurt(this, hurtObj);
+				_lockingTarget.receiveAttackHurt(this, frameData);
 			}
 		}
 		
-		public function attackHurtCatch(hurtObj:Object):void {
+		/**
+		 * 作用伤害到正抓举的单位
+		 * @param	hurtObj
+		 */
+		public function attackHurtCatch(frameData:SkillFrameData):void {
 			if (_catchingUnit) {
-				_catchingUnit.receiveAttackHurt(this, hurtObj);
-				if (hurtObj.isEndCatch) {
+				_catchingUnit.receiveAttackHurt(this, frameData);
+				if (frameData.releaseCatch) {
 					_catchingUnit.physicsComponent.isBeingCatched = false;
 					_catchingUnit = null;
 				}
 			}
 		}
 		
+		/**
+		 * 攻击结束
+		 */
 		public function attackEnd():void
 		{
 			this._attackCube = null;
-			this._currentSkillData = null;
+			this._currentSkillOperator = null;
 			if (this._catchingUnit) {
 				this.releaseCatch();
 			}
 		}
 		
-		private var _catchingUnit:AttackableUnit;
-		public function catchAndFollow(frameObj:Object, attackCube:Cube):void {
+		/**
+		 * 抓举单位
+		 * @param	frameObj
+		 * @param	attackCube
+		 * @return
+		 */
+		public function catchAndFollow(frameData:SkillFrameData, attackCube:Cube):Boolean {
 			if (attackCube)
-			{
 				this._attackCube = attackCube;
-			}
+			
 			if (_catchingUnit == null) {
 				_catchingUnit = searchTarget(1).pop();
 				if (_catchingUnit) _catchingUnit.physicsComponent.isBeingCatched = true;
 			}
 			
-			if (_catchingUnit){
-				if (frameObj.elevation is Number) {
-					_catchingUnit.position.elevation = int(frameObj.elevation);
-				}
-				if (frameObj.x is Number) {
-					_catchingUnit.position.globalX = this._position.globalX + int(frameObj.x)*this._physicsComponent.faceDirection
-				}
-			}
+			if (_catchingUnit) {
+				if (frameData.catchZ != 0) 
+					_catchingUnit.position.z = _position.z + frameData.catchZ;
+				
+				if (frameData.catchX != 0)
+					_catchingUnit.position.globalX = _position.globalX + frameData.catchX * _physicsComponent.faceDirection;
+				
+				if (frameData.catchY != 0)
+					_catchingUnit.position.globalY = _position.globalY + frameData.catchY; 
+					
+				this.hurtLockingTarget(frameData);
+				return true;
+			} 
+			return false;
 		}
 		
+		/**
+		 * 释放正抓举的单位
+		 */
 		public function releaseCatch():void {
 			if (_catchingUnit) _catchingUnit.physicsComponent.isBeingCatched = false;
 			_catchingUnit = null;
@@ -263,7 +317,7 @@ package com.alex.unit
 		{
 			super.release();
 			this._attackCube = null;
-			this._currentSkillData = null;
+			this._currentSkillOperator = null;
 			this._rangeOfVision = null;
 			this._isDying = false;
 			this._allSkillDic = null;
@@ -287,7 +341,7 @@ package com.alex.unit
 			{
 				case OrderConst.LIFE_EMPTY: 
 					this._isDying = true;
-					AnimationManager.addToAnimationList(new AttributeAnimation(this, {alpha: 0}, 5000, OrderConst.DIED_COMPLETE, null, this));
+					AnimationManager.add(new AttributeAnimation(this, {alpha: 0}, 5000, OrderConst.DIED_COMPLETE, null, this));
 					break;
 				case OrderConst.DIED_COMPLETE: 
 					this.release();
@@ -300,9 +354,9 @@ package com.alex.unit
 		override public function gotoNextFrame(passedTime:Number):void 
 		{
 			super.gotoNextFrame(passedTime);
-			if (this._currentSkillData) 
+			if (this._currentSkillOperator) 
 			{
-				this._currentSkillData.run(passedTime);
+				this._currentSkillOperator.run(passedTime);
 			}
 		}
 	

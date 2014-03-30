@@ -1,13 +1,12 @@
 package com.alex.skill
 {
-	import com.alex.constant.MoveDirection;
 	import com.alex.constant.OrderConst;
-	import com.alex.pattern.Commander;
+	import com.alex.core.commander.Commander;
+	import com.alex.core.component.MoveDirection;
+	import com.alex.core.component.PhysicsComponent;
+	import com.alex.core.util.Cube;
+	import com.alex.core.component.Position;
 	import com.alex.unit.AttackableUnit;
-	import com.alex.util.Cube;
-	import com.alex.component.PhysicsComponent;
-	import com.alex.display.IPhysics;
-	import com.alex.worldmap.Position;
 	import flash.geom.Point;
 	
 	/**
@@ -28,29 +27,23 @@ package com.alex.skill
 		
 		private var _currentFrame:int = 0;
 		private var _maxFrame:int = 10;
-		private var _frameData:Array;
+		private var _frameDataList:Vector.<SkillFrameData>;
 		private var _attackableUnit:AttackableUnit;
 		
-		/**
-		 * 技能类型：0锐器，1钝器，2拳脚，3内功
-		 */
-		public var type:int = 0;
 		
 		private var _fps:int = 60;
 		private var _fTime:Number = 0;
 		private var _tempTime:Number = 0;
 		
-		public function SkillOperator(attackableUnit:AttackableUnit, frameData:Array = null)
+		public function SkillOperator(attackableUnit:AttackableUnit, frameData:Vector.<SkillFrameData> = null)
 		{
 			_fps = 16;
 			_fTime = 1000 / _fps;
 			_attackableUnit = attackableUnit;
 			if (frameData)
-			{
-				_frameData = frameData;
-			} else {
-				_frameData = [{type:"end"}];
-			}
+				_frameDataList = frameData;
+			else
+				_frameDataList = new <SkillFrameData>[SkillFrameData.make().initByObj({type:"end"})];
 		}
 		
 		public function run(passedTime:Number):void {
@@ -58,42 +51,42 @@ package com.alex.skill
 			if (_tempTime >= _fTime)
 			{
 				_tempTime -= _fTime;
-				var frameObj:Object = _frameData[_currentFrame];
-				if (frameObj)
+				var frameData:SkillFrameData = _frameDataList[_currentFrame];
+				if (frameData)
 				{
-					switch(frameObj.type)
+					switch(frameData.type)
 					{
 						case "hurt"://普通伤害
-							_attackableUnit.attackHurt(frameObj, getAttackCube());
+							_attackableUnit.attackHurt(frameData, getAttackCube());
 							break;
 						case "distance"://释放远程招式
-							if (frameObj.distanceId)
-							{
-								var sPosition:Position = this._attackableUnit.position.copy();
-								var skill:SkillShow = SkillShow.make(frameObj.distanceId, this._attackableUnit, sPosition, this._attackableUnit.physicsComponent.faceDirection == 1 ? MoveDirection.X_RIGHT : MoveDirection.X_LEFT, 40, 10, frameObj);
-								Commander.sendOrder(OrderConst.ADD_ITEM_TO_WORLD_MAP, skill);
-							}
+							if (frameData.distanceId == null) break;
+							var sPosition:Position = _attackableUnit.position.copy();
+							var skill:SkillShow = SkillShow.make(frameData.distanceId, _attackableUnit, sPosition, 
+								_attackableUnit.physicsComponent.faceDirection == 1 ? MoveDirection.X_RIGHT : MoveDirection.X_LEFT, frameData);
+							Commander.sendOrder(OrderConst.ADD_ITEM_TO_WORLD_MAP, skill);
 							break;
 						case "lockTarget"://锁定目标
-							_attackableUnit.locakTarget(getAttackCube());
+							_attackableUnit.lockTarget(getAttackCube());
 							break;
 						case "hurt_target"://攻击锁定目标
-							_attackableUnit.hurtLockingTarget(frameObj);
+							_attackableUnit.hurtLockingTarget(frameData);
 							break;
-						case "catch":
-							_attackableUnit.catchAndFollow(frameObj, getAttackCube());
+						case "catch"://抓举单位
+							var catched:Boolean = _attackableUnit.catchAndFollow(frameData, getAttackCube());
+							if (!catched) _attackableUnit.attackEnd();
 							break;
-						case "hurt_catch":
-							_attackableUnit.attackHurtCatch(frameObj);
+						case "hurt_catch"://伤害作用抓举单位
+							_attackableUnit.attackHurtCatch(frameData);
 							break;
-						case "release_catch":
+						case "release_catch"://释放抓举单位
 							_attackableUnit.releaseCatch();
 							break;
-						case "end":
+						case "end"://攻击结束
 							_attackableUnit.attackEnd();
 							return;
 					}
-					if (frameObj.releaseCatch) {
+					if (frameData.releaseCatch) {
 						_attackableUnit.releaseCatch();
 					}
 				}
@@ -103,17 +96,20 @@ package com.alex.skill
 			}
 		}
 		
+		private var _attackCube:Cube;
 		public function getAttackCube():Cube
 		{
+			if (!_attackCube) _attackCube = new Cube();
 			var ackPos:Position = _attackableUnit.position;
 			var phyc:PhysicsComponent = _attackableUnit.physicsComponent;
 			if (phyc.faceDirection == 1) {
-				return new Cube(ackPos.globalX + 40, ackPos.globalY - 30, 
-				ackPos.elevation, 80, 60, 80);
+				_attackCube.refresh(ackPos.globalX + 40, ackPos.globalY - 30, 
+				ackPos.z, 80, 60, 80);
 			} else {
-				return new Cube(ackPos.globalX -80- 40, ackPos.globalY - 30, 
-				ackPos.elevation, 80, 60, 80);
+				_attackCube.refresh(ackPos.globalX -80- 40, ackPos.globalY - 30, 
+				ackPos.z, 80, 60, 80);
 			}
+			return _attackCube;
 		}
 	
 	}

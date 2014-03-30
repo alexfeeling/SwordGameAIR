@@ -1,25 +1,15 @@
 package com.alex.role
 {
-	import com.alex.animation.AnimationManager;
-	import com.alex.animation.IAnimation;
-	import com.alex.component.AttributeComponent;
-	import com.alex.component.PhysicsComponent;
 	import com.alex.constant.OrderConst;
-	import com.alex.constant.MoveDirection;
-	import com.alex.constant.PhysicsType;
-	import com.alex.display.IDisplay;
-	import com.alex.display.IPhysics;
-	import com.alex.pattern.Commander;
-	import com.alex.pattern.IOrderExecutor;
-	import com.alex.pool.InstancePool;
-	import com.alex.pool.IRecycle;
+	import com.alex.core.component.AttributeComponent;
+	import com.alex.core.component.PhysicsComponent;
+	import com.alex.core.component.PhysicsType;
+	import com.alex.core.util.IdMachine;
+	import com.alex.core.component.Position;
+	import com.alex.core.world.World;
 	import com.alex.skill.SkillShow;
 	import com.alex.unit.AttackableUnit;
 	import com.alex.unit.BaseUnit;
-	import com.alex.util.IdMachine;
-	import com.alex.worldmap.MapBlock;
-	import com.alex.worldmap.Position;
-	import com.alex.worldmap.WorldMap;
 	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
@@ -79,7 +69,7 @@ package com.alex.role
 		{
 			super.createUI();
 			_shadow.graphics.beginFill(0x0, 0.5);
-			_shadow.graphics.drawRect(-WorldMap.GRID_WIDTH / 2, -WorldMap.GRID_HEIGHT / 2, WorldMap.GRID_WIDTH, WorldMap.GRID_HEIGHT);
+			_shadow.graphics.drawRect(-World.GRID_WIDTH / 2, -World.GRID_HEIGHT / 2, World.GRID_WIDTH, World.GRID_HEIGHT);
 			_shadow.graphics.endFill();
 			run = new RUN_CLASS();
 			run.stop();
@@ -89,7 +79,7 @@ package com.alex.role
 		override public function getExecuteOrderList():Array
 		{
 			return super.getExecuteOrderList().concat([
-				OrderConst.CREATE_SKILL, 
+				//OrderConst.CREATE_SKILL, 
 				OrderConst.ROLE_START_MOVE, 
 				OrderConst.ROLE_STOP_MOVE, 
 				OrderConst.ROLE_START_JUMP,
@@ -101,15 +91,15 @@ package com.alex.role
 		{
 			switch (orderName)
 			{
-				case OrderConst.CREATE_SKILL: 
-					var skillName:String = orderParam as String;
-					if (skillName != null)
-					{
-						var sPosition:Position = this.position.copy();
-						var skill:SkillShow = SkillShow.make(skillName, this, sPosition, this._physicsComponent.faceDirection == 1 ? MoveDirection.X_RIGHT : MoveDirection.X_LEFT, 40, 10);
-						Commander.sendOrder(OrderConst.ADD_ITEM_TO_WORLD_MAP, skill);
-					}
-					break;
+				//case OrderConst.CREATE_SKILL: 
+					//var skillName:String = orderParam as String;
+					//if (skillName != null)
+					//{
+						//var sPosition:Position = this.position.copy();
+						//var skill:SkillShow = SkillShow.make(skillName, this, sPosition, this._physicsComponent.faceDirection == 1 ? MoveDirection.X_RIGHT : MoveDirection.X_LEFT);
+						//Commander.sendOrder(OrderConst.ADD_ITEM_TO_WORLD_MAP, skill);
+					//}
+					//break;
 				case OrderConst.ROLE_START_MOVE: 
 					this._physicsComponent.startMove(int(orderParam));
 					break;
@@ -148,9 +138,9 @@ package com.alex.role
 			}
 		}
 		
-		override public function refreshElevation():void
+		override public function refreshZ():void
 		{
-			var elevation:Number = Math.max(this._position.elevation, 0);
+			var elevation:Number = Math.max(this._position.z, 0);
 			this._body.y = -elevation;
 		}
 		

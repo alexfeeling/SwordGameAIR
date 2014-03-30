@@ -1,6 +1,6 @@
-package com.alex.display 
+package com.alex.core.display 
 {
-	import com.alex.component.AttributeComponent;
+	import com.alex.core.component.AttributeComponent;
 	
 	/**
 	 * ...

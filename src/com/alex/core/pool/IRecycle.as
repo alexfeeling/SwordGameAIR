@@ -1,4 +1,4 @@
-package com.alex.pool
+package com.alex.core.pool
 {
 	
 	/**

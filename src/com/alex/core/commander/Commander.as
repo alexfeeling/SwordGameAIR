@@ -1,7 +1,6 @@
-package com.alex.pattern
+package com.alex.core.commander
 {
 	import adobe.utils.CustomActions;
-	import com.alex.worldmap.MapBlock;
 	import flash.utils.Dictionary;
 	
 	/**

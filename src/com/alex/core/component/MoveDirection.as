@@ -1,4 +1,4 @@
-package com.alex.constant 
+package com.alex.core.component 
 {
 	/**
 	 * 移动方向

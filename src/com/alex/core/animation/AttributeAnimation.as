@@ -1,9 +1,9 @@
-package com.alex.animation
+package com.alex.core.animation
 {
-	import com.alex.display.IDisplay;
-	import com.alex.pattern.Commander;
-	import com.alex.pattern.IOrderExecutor;
-	import com.alex.util.IdMachine;
+	import com.alex.core.commander.Commander;
+	import com.alex.core.commander.IOrderExecutor;
+	import com.alex.core.display.IDisplay;
+	import com.alex.core.util.IdMachine;
 	import flash.display.DisplayObject;
 	
 	/**
@@ -25,7 +25,8 @@ package com.alex.animation
 		private var _endOrderParam:Object;
 		private var _endOrderExecutor:IOrderExecutor;
 		
-		public function AttributeAnimation(target:IDisplay, attrObj:Object, time:Number, endOrder:String = null, endOrderParam:Object = null, endOrderExecutor:IOrderExecutor = null)
+		public function AttributeAnimation(target:IDisplay, attrObj:Object, time:Number, 
+			endOrder:String = null, endOrderParam:Object = null, endOrderExecutor:IOrderExecutor = null)
 		{
 			this._id = IdMachine.getId(AttributeAnimation);
 			this._target = target;

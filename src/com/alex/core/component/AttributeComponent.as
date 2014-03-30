@@ -1,12 +1,12 @@
-package com.alex.component
+package com.alex.core.component
 {
 	import com.alex.constant.OrderConst;
-	import com.alex.display.IPhysics;
-	import com.alex.pattern.Commander;
-	import com.alex.pattern.IOrderExecutor;
-	import com.alex.pool.InstancePool;
-	import com.alex.pool.IRecycle;
-	import com.alex.util.IdMachine;
+	import com.alex.core.commander.Commander;
+	import com.alex.core.commander.IOrderExecutor;
+	import com.alex.core.display.IDisplay;
+	import com.alex.core.pool.InstancePool;
+	import com.alex.core.pool.IRecycle;
+	import com.alex.core.util.IdMachine;
 	
 	/**
 	 * 单位属性组件
@@ -17,7 +17,7 @@ package com.alex.component
 		
 		private var _id:String;
 		
-		private var _phycObject:IPhysics;
+		private var _phycObject:IDisplay;
 		
 		///气血
 		private var _life:int = 0;
@@ -35,7 +35,7 @@ package com.alex.component
 		
 		}
 		
-		protected function init(phycObj:IPhysics, maxLife:int, maxEnergy:int, life:int = -1, energy:int = -1):AttributeComponent
+		protected function init(phycObj:IDisplay, maxLife:int, maxEnergy:int, life:int = -1, energy:int = -1):AttributeComponent
 		{
 			this._isRelease = false;
 			this._id = IdMachine.getId(AttributeComponent);
@@ -48,7 +48,7 @@ package com.alex.component
 			return this;
 		}
 		
-		public static function make(phycObj:IPhysics, maxLife:int, maxEnergy:int, life:int = -1, energy:int = -1):AttributeComponent
+		public static function make(phycObj:IDisplay, maxLife:int, maxEnergy:int, life:int = -1, energy:int = -1):AttributeComponent
 		{
 			return AttributeComponent(InstancePool.getInstance(AttributeComponent)).init(phycObj, maxLife, maxEnergy, life, energy);
 		}

@@ -1,14 +1,13 @@
 package com.alex.controll 
 {
-	import com.alex.animation.AnimationManager;
-	import com.alex.animation.IAnimation;
 	import com.alex.constant.OrderConst;
-	import com.alex.constant.MoveDirection;
-	import com.alex.pattern.Commander;
-	import com.alex.pattern.IOrderExecutor;
+	import com.alex.core.animation.AnimationManager;
+	import com.alex.core.animation.IAnimation;
+	import com.alex.core.commander.Commander;
+	import com.alex.core.commander.IOrderExecutor;
+	import com.alex.core.component.MoveDirection;
 	import com.alex.skill.SkillShow;
 	import com.alex.skill.SkillManager;
-	import com.alex.worldmap.WorldMap;
 	import flash.display.Stage;
 	import flash.events.KeyboardEvent;
 	import flash.utils.Dictionary;
@@ -97,7 +96,7 @@ package com.alex.controll
 				KEY_CODE_TO_KEY_CHAR[KEY_K] = "K";
 				KEY_CODE_TO_KEY_CHAR[KEY_L] = "L";
 			}
-			AnimationManager.addToAnimationList(this);
+			AnimationManager.add(this);
 		}
 		
 		private function onKeyDown(event:KeyboardEvent):void {

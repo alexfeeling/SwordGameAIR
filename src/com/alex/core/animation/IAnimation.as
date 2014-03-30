@@ -1,4 +1,4 @@
-package com.alex.animation 
+package com.alex.core.animation 
 {
 	
 	/**

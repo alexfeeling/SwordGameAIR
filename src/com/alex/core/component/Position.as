@@ -1,18 +1,19 @@
-package com.alex.worldmap 
+package com.alex.core.component 
 {
-	import com.alex.component.PhysicsComponent;
-	import com.alex.constant.MoveDirection;
-	import com.alex.display.IPhysics;
-	import com.alex.pool.InstancePool;
-	import com.alex.pool.IRecycle;
+	import com.alex.core.component.MoveDirection;
+	import com.alex.core.component.PhysicsComponent;
+	import com.alex.core.display.IDisplay;
+	import com.alex.core.pool.InstancePool;
+	import com.alex.core.pool.IRecycle;
+	import com.alex.core.world.World;
 	/**
-	 * ...
+	 * 单位位置类
 	 * @author alex
 	 */
 	public class Position implements IRecycle
 	{
 		
-		public var phycItem:IPhysics;
+		public var phycItem:IDisplay;
 		
 		private var _gridX:int;
 		private var _gridY:int;
@@ -24,7 +25,7 @@ package com.alex.worldmap
 		private var _isRelease:Boolean;
 		
 		///海拔高度
-		public var elevation:int;
+		public var z:int;
 		
 		///相对海拔高度
 		public var relativeElevation:int;
@@ -40,20 +41,32 @@ package com.alex.worldmap
 		{
 			this._gridX = vGridX;
 			this._gridY = vGridY;
-			this._insideX = vInsideX == -1?WorldMap.GRID_WIDTH / 2:vInsideX;
-			this._insideY = vInsideY == -1?WorldMap.GRID_HEIGHT / 2:vInsideY;
-			this.elevation = vElevation;
+			this._insideX = vInsideX == -1?World.GRID_WIDTH / 2:vInsideX;
+			this._insideY = vInsideY == -1?World.GRID_HEIGHT / 2:vInsideY;
+			this.z = vElevation;
 			this._isRelease = false;
 			return this;
 		}
 		
+		/**
+		 * 获取一个新的Position，从对象池里获取
+		 * @param	gridX
+		 * @param	gridY
+		 * @param	insideX
+		 * @param	insideY
+		 * @param	elevation
+		 * @return
+		 */
 		public static function make(gridX:int = 0, gridY:int = 0, insideX:int = -1, insideY:int = -1, elevation:int = 0):Position {
-			//return InstancePool.getPosition(gridX, gridY, insideX, insideY, elevation);
 			return (InstancePool.getInstance(Position) as Position).init(gridX, gridY, insideX, insideY, elevation);
 		}
 		
-		//与目标单位贴合
-		public function nestleUpTo(vDirection:int, vTarget:IPhysics):void {
+		/**
+		 * 与目标单位贴合
+		 * @param	vDirection
+		 * @param	vTarget
+		 */
+		public function nestleUpTo(vDirection:int, vTarget:IDisplay):void {
 			var myPhysicsComponent:PhysicsComponent = this.phycItem.physicsComponent;
 			var targetPhysicsComponent:PhysicsComponent = vTarget.physicsComponent;
 			var targetPosition:Position = vTarget.position;
@@ -79,16 +92,21 @@ package com.alex.worldmap
 						((myPhysicsComponent.width + targetPhysicsComponent.width) >> 1);
 					break;
 				case MoveDirection.Z_BOTTOM:
-					this.elevation = targetPosition.elevation + targetPhysicsComponent.height;
+					this.z = targetPosition.z + targetPhysicsComponent.height;
 					myPhysicsComponent.forceStopZ();
 					break;
 				case MoveDirection.Z_TOP:
-					this.elevation = targetPosition.elevation - targetPhysicsComponent.height;
+					this.z = targetPosition.z - targetPhysicsComponent.height;
 					myPhysicsComponent.forceStopZ();
 					break;
 			}
 		}
 		
+		/**
+		 * 移动
+		 * @param	vDirection
+		 * @param	vDistance
+		 */
 		public function move(vDirection:int, vDistance:int):void {
 			switch(vDirection) {
 				case MoveDirection.X_LEFT://左
@@ -104,16 +122,20 @@ package com.alex.worldmap
 					this.insideY += vDistance;
 					break;
 				case MoveDirection.Z_BOTTOM://下落
-					this.elevation -= vDistance;
-					this.elevation = Math.max(this.elevation, 0);
+					this.z -= vDistance;
+					this.z = Math.max(this.z, 0);
 					break;
 				case MoveDirection.Z_TOP://上升
-					this.elevation += vDistance;
+					this.z += vDistance;
 					break;
 			}
 		}
 		
-		///比较X位置，目标在左边返回-1，在右边返回1，相等返回0
+		/**
+		 * 比较X位置，目标在左边返回-1，在右边返回1，相等返回0
+		 * @param	vPosition
+		 * @return
+		 */
 		public function compareX(vPosition:Position):int {
 			if (vPosition.gridX < _gridX) {
 				return -1;
@@ -128,7 +150,9 @@ package com.alex.worldmap
 			}
 		}
 		
-		///地图块内格子坐标X
+		/**
+		 * 地图块内格子坐标X
+		 */
 		public function get gridX():int 
 		{
 			return _gridX;
@@ -136,15 +160,15 @@ package com.alex.worldmap
 		
 		public function set gridX(value:int):void 
 		{
-			if (_gridX == value) {
-				return;
-			}
+			if (_gridX == value) return;
 			var orgin:int = _gridX;
 			_gridX = value;
-			WorldMap.getInstance().refreshGridItem(phycItem, orgin, gridY);
+			World.getInstance().refreshGridItem(phycItem, orgin, gridY);
 		}
 		
-		///地图块内格子坐标Y
+		/**
+		 * 地图块内格子坐标Y
+		 */
 		public function get gridY():int 
 		{
 			return _gridY;
@@ -152,25 +176,28 @@ package com.alex.worldmap
 		
 		public function set gridY(value:int):void 
 		{
-			if (_gridY == value) {
-				return;
-			}
+			if (_gridY == value) return;
 			var orgin:int = _gridY;
 			_gridY = value;
-			WorldMap.getInstance().refreshGridItem(phycItem, gridX, orgin);
+			World.getInstance().refreshGridItem(phycItem, gridX, orgin);
 		}
 		
 		public function get globalX():int {
-			return this.gridX * WorldMap.GRID_WIDTH + this.insideX;
+			return this.gridX * World.GRID_WIDTH + this.insideX;
 		}
 		
 		public function get globalY():int {
-			return this.gridY * WorldMap.GRID_HEIGHT + this.insideY;
+			return this.gridY * World.GRID_HEIGHT + this.insideY;
 		}
 		
 		public function set globalX(value:int):void {
-			this.gridX = int(value / WorldMap.GRID_WIDTH);
-			this._insideX = int(value % WorldMap.GRID_WIDTH);
+			this.gridX = int(value / World.GRID_WIDTH);
+			this._insideX = int(value % World.GRID_WIDTH);
+		}
+		
+		public function set globalY(value:int):void {
+			this.gridY = int(value / World.GRID_HEIGHT);
+			this._insideY = int(value % World.GRID_HEIGHT);
 		}
 		
 		public function get insideX():int 
@@ -182,10 +209,10 @@ package com.alex.worldmap
 		{
 			_insideX = int(value);
 			if (_insideX < 0) {
-				_insideX += WorldMap.GRID_WIDTH;
+				_insideX += World.GRID_WIDTH;
 				this.gridX--;
-			} else if (_insideX >= WorldMap.GRID_WIDTH) {
-				_insideX -= WorldMap.GRID_WIDTH;
+			} else if (_insideX >= World.GRID_WIDTH) {
+				_insideX -= World.GRID_WIDTH;
 				this.gridX++;
 			} 
 		}
@@ -199,29 +226,29 @@ package com.alex.worldmap
 		{
 			_insideY = int(value);
 			if (_insideY < 0) {
-				_insideY += WorldMap.GRID_HEIGHT;
+				_insideY += World.GRID_HEIGHT;
 				this.gridY--;
-			} else if (_insideY >= WorldMap.GRID_HEIGHT) {
-				_insideY -= WorldMap.GRID_HEIGHT;
+			} else if (_insideY >= World.GRID_HEIGHT) {
+				_insideY -= World.GRID_HEIGHT;
 				this.gridY++;
 			}
 		}
 		
-		///复制格子
+		/**
+		 * 复制一个完全一样的Position
+		 * @return
+		 */
 		public function copy():Position {
-			//return InstancePool.getPosition(this._gridX, this._gridY, 
-						//this.insideX, this.insideY, this.elevation);
 			return Position(InstancePool.getInstance(Position)).init(this._gridX, this._gridY, 
-						this.insideX, this.insideY, this.elevation);
+						this.insideX, this.insideY, this.z);
 		}
 		
 		/* INTERFACE com.alex.pool.IRecycle */
 		
 		public function release():void 
 		{
-			if (this._isRelease) {
-				throw "already release.";
-			}
+			if (this._isRelease) throw "already release.";
+			
 			this._isRelease = true;
 			InstancePool.recycle(this);
 			this.phycItem = null;
@@ -229,7 +256,7 @@ package com.alex.worldmap
 			this._gridY = 0;
 			this.insideX = 0;
 			this.insideY = 0;
-			this.elevation = 0;
+			this.z = 0;
 		}
 		
 		/* INTERFACE com.alex.pool.IRecycle */

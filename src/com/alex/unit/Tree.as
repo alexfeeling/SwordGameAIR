@@ -1,23 +1,16 @@
-package com.alex.display
+package com.alex.unit
 {
 	import adobe.utils.CustomActions;
-	import com.alex.animation.AnimationManager;
-	import com.alex.animation.IAnimation;
-	import com.alex.component.AttributeComponent;
-	import com.alex.component.PhysicsComponent;
 	import com.alex.constant.OrderConst;
-	import com.alex.constant.MoveDirection;
-	import com.alex.constant.PhysicsType;
-	import com.alex.pattern.Commander;
-	import com.alex.pattern.IOrderExecutor;
-	import com.alex.pool.InstancePool;
-	import com.alex.pool.IRecycle;
+	import com.alex.core.component.AttributeComponent;
+	import com.alex.core.component.PhysicsComponent;
+	import com.alex.core.component.PhysicsType;
+	import com.alex.core.pool.InstancePool;
+	import com.alex.core.util.IdMachine;
+	import com.alex.core.component.Position;
+	import com.alex.core.world.World;
 	import com.alex.unit.AttackableUnit;
 	import com.alex.unit.BaseUnit;
-	import com.alex.util.IdMachine;
-	import com.alex.worldmap.MapBlock;
-	import com.alex.worldmap.Position;
-	import com.alex.worldmap.WorldMap;
 	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
 	import flash.display.Shape;
@@ -45,7 +38,7 @@ package com.alex.display
 		{
 			this.refresh(IdMachine.getId(Tree), vPostion, PhysicsComponent.make(this, vPostion, 10, 40 * 2, 30 * 2, 100, 100, PhysicsType.SOLID));
 			refreshAttribute(AttributeComponent.make(this, 100, 100));
-			this.position.elevation = 200;
+			this.position.z = 200;
 			return this;
 		}
 		
@@ -58,7 +51,7 @@ package com.alex.display
 		{
 			super.createUI();
 			_shadow.graphics.beginFill(0x0, 0.3);
-			_shadow.graphics.drawEllipse(-WorldMap.GRID_WIDTH / 2, -WorldMap.GRID_HEIGHT / 2, WorldMap.GRID_WIDTH, WorldMap.GRID_HEIGHT);
+			_shadow.graphics.drawEllipse(-World.GRID_WIDTH / 2, -World.GRID_HEIGHT / 2, World.GRID_WIDTH, World.GRID_HEIGHT);
 			_shadow.graphics.endFill();
 			
 			_body.graphics.clear();
@@ -76,9 +69,9 @@ package com.alex.display
 			_body.addChild(run);
 		}
 		
-		override public function refreshElevation():void
+		override public function refreshZ():void
 		{
-			this._body.y = -this._position.elevation;
+			this._body.y = -this._position.z;
 		}
 	
 	}

@@ -1,9 +1,8 @@
-package com.alex.worldmap 
+package com.alex.core.worldmap 
 {
 	import adobe.utils.CustomActions;
 	import com.alex.constant.OrderConst;
 	import com.alex.display.IDisplay;
-	import com.alex.display.IPhysics;
 	import com.alex.display.Tree;
 	import com.alex.pattern.Commander;
 	import com.alex.pattern.IOrderExecutor;
@@ -168,7 +167,7 @@ package com.alex.worldmap
 			this._allMapGridDic = null;
 		}
 		
-		public function removeSingleItem(item:IPhysics, gridX:int, gridY:int, isRelease:Boolean = true):void {
+		public function removeSingleItem(item:IDisplay, gridX:int, gridY:int, isRelease:Boolean = true):void {
 			if (_isRelease) {
 				return;
 			}

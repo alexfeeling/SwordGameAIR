@@ -1,4 +1,4 @@
-package com.alex.util 
+package com.alex.core.util 
 {
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;

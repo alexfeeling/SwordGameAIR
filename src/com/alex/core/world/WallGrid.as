@@ -1,4 +1,4 @@
-package com.alex.worldmap 
+package com.alex.core.worldmap 
 {
 	import com.alex.pool.InstancePool;
 	import com.alex.pool.IRecycle;

@@ -1,8 +1,8 @@
 package com.alex.skill
 {
 	import com.alex.constant.OrderConst;
-	import com.alex.pattern.Commander;
-	import com.alex.pattern.IOrderExecutor;
+	import com.alex.core.commander.Commander;
+	import com.alex.core.commander.IOrderExecutor;
 	import flash.utils.Dictionary;
 	
 	/**

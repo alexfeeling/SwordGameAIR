@@ -1,15 +1,9 @@
-package com.alex.pool 
+package com.alex.core.pool 
 {
-	import com.alex.component.PhysicsComponent;
-	import com.alex.display.IDisplay;
-	import com.alex.display.IPhysics;
-	import com.alex.display.Tree;
 	import com.alex.model.EnergyVector;
 	import com.alex.role.MainRole;
 	import com.alex.skill.SkillShow;
 	import com.alex.unit.AttackableUnit;
-	import com.alex.worldmap.MapBlock;
-	import com.alex.worldmap.Position;
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
@@ -70,9 +64,11 @@ package com.alex.pool
 		public static function recycle(vInstance:IRecycle):void {
 			var vClass:Class = getDefinitionByName(getQualifiedClassName(vInstance)) as Class;
 			var pool:Array = _instance._m_poolDic[vClass] as Array;
-			if (pool != null) {
-				pool.push(vInstance);
+			if (pool == null) {
+				pool = [];
+				_instance._m_poolDic[vClass] = pool;
 			}
+			pool.push(vInstance);
 		}
 		
 	}

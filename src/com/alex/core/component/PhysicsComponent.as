@@ -1,21 +1,17 @@
-package com.alex.component
+package com.alex.core.component
 {
 	import com.alex.constant.OrderConst;
-	import com.alex.constant.MoveDirection;
-	import com.alex.constant.PhysicsType;
-	import com.alex.display.IDisplay;
-	import com.alex.display.IPhysics;
-	import com.alex.display.Tree;
-	import com.alex.pattern.Commander;
-	import com.alex.pattern.IOrderExecutor;
-	import com.alex.pool.InstancePool;
-	import com.alex.pool.IRecycle;
+	import com.alex.core.commander.Commander;
+	import com.alex.core.commander.IOrderExecutor;
+	import com.alex.core.display.IDisplay;
+	import com.alex.core.pool.InstancePool;
+	import com.alex.core.pool.IRecycle;
+	import com.alex.core.util.Cube;
+	import com.alex.core.util.IdMachine;
+	import com.alex.core.component.Position;
 	import com.alex.role.MainRole;
 	import com.alex.skill.SkillShow;
-	import com.alex.util.Cube;
-	import com.alex.util.IdMachine;
-	import com.alex.worldmap.Position;
-	import com.alex.worldmap.WorldMap;
+	import com.alex.unit.Tree;
 	import flash.display.DisplayObject;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
@@ -76,7 +72,7 @@ package com.alex.component
 		private var _id:String;
 		
 		///托举着我的单位
-		public var unitLiftMe:IPhysics;
+		public var unitLiftMe:IDisplay;
 		
 		///踩着我的单位
 		public var unitStandOnMeDic:Dictionary;
@@ -462,7 +458,7 @@ package com.alex.component
 			{
 				return;
 			}
-			this._displayObj.refreshElevation();
+			this._displayObj.refreshZ();
 			//=======================================
 			
 			this._moveOnX(passedTime, tempTime, isFocus);
@@ -484,7 +480,7 @@ package com.alex.component
 		private function _moveOnX(passedTime:Number, tempTime:Number, isFocus:Boolean):void
 		{
 			if (isBeingCatched) return;
-			if (!this._isSelfControl && (this._position.elevation == 0 || !this.unitLiftMe))
+			if (!this._isSelfControl && (this._position.z == 0 || !this.unitLiftMe))
 			{
 				var a:Number = this._friction * GRAVITY;
 			}
@@ -536,7 +532,7 @@ package com.alex.component
 			}
 			for (var unitId:String in this.unitStandOnMeDic)
 			{
-				var unit:IPhysics = this.unitStandOnMeDic[unitId] as IPhysics;
+				var unit:IDisplay = this.unitStandOnMeDic[unitId] as IDisplay;
 				if (unit && !this.toCube().isLiftCube(unit.physicsComponent.toCube()))
 				{
 					unit.physicsComponent.executeOrder(OrderConst.CANCEL_STAND_ON_UNIT);
@@ -548,7 +544,7 @@ package com.alex.component
 		private function _moveOnY(passedTime:Number, tempTime:Number, isFocus:Boolean):void
 		{
 			if (isBeingCatched) return;
-			if (!this._isSelfControl && (this._position.elevation == 0 || !this.unitLiftMe))
+			if (!this._isSelfControl && (this._position.z == 0 || !this.unitLiftMe))
 			{
 				var a:Number = this._friction * GRAVITY;
 			}
@@ -600,7 +596,7 @@ package com.alex.component
 			}
 			for (var unitId:String in this.unitStandOnMeDic)
 			{
-				var unit:IPhysics = this.unitStandOnMeDic[unitId] as IPhysics;
+				var unit:IDisplay = this.unitStandOnMeDic[unitId] as IDisplay;
 				if (unit && !this.toCube().isLiftCube(unit.physicsComponent.toCube()))
 				{
 					unit.physicsComponent.executeOrder(OrderConst.CANCEL_STAND_ON_UNIT);
@@ -653,7 +649,7 @@ package com.alex.component
 				}
 				for (var unitId:String in this.unitStandOnMeDic)
 				{
-					var unit:IPhysics = this.unitStandOnMeDic[unitId] as IPhysics;
+					var unit:IDisplay = this.unitStandOnMeDic[unitId] as IDisplay;
 					if (unit && !this.toCube().isLiftCube(unit.physicsComponent.toCube()))
 					{
 						unit.physicsComponent.executeOrder(OrderConst.CANCEL_STAND_ON_UNIT);
@@ -682,7 +678,7 @@ package com.alex.component
 					this._zVelocity = 0;
 					if (!this.unitLiftMe)
 					{
-						this._position.elevation = 0;
+						this._position.z = 0;
 					}
 					if (this._isSelfControl)
 					{
@@ -761,20 +757,20 @@ package com.alex.component
 					this.forceImpact(dir, energy, loseControll);
 					break;
 				case OrderConst.STAND_ON_UNIT: 
-					this.unitLiftMe = orderParam as IPhysics;
+					this.unitLiftMe = orderParam as IDisplay;
 					if (this.unitLiftMe)
 					{
 						this.unitLiftMe.physicsComponent.executeOrder(OrderConst.LIFT_UNIT, this._displayObj);
 					}
 					break;
 				case OrderConst.LIFT_UNIT: 
-					if (orderParam is IPhysics)
+					if (orderParam is IDisplay)
 					{
-						this.unitStandOnMeDic[(orderParam as IPhysics).id] = orderParam;
+						this.unitStandOnMeDic[(orderParam as IDisplay).id] = orderParam;
 					}
 					break;
 				case OrderConst.CANCEL_LIFT_UNIT: 
-					var unitId:String = (orderParam as IPhysics).id;
+					var unitId:String = (orderParam as IDisplay).id;
 					if (this.unitStandOnMeDic[unitId])
 					{
 						delete this.unitStandOnMeDic[unitId];
@@ -802,7 +798,7 @@ package com.alex.component
 				this.unitLiftMe.physicsComponent.executeOrder(OrderConst.CANCEL_LIFT_UNIT, this._displayObj);
 				this.unitLiftMe = null;
 			}
-			for each (var unit:IPhysics in this.unitStandOnMeDic)
+			for each (var unit:IDisplay in this.unitStandOnMeDic)
 			{
 				unit.physicsComponent.executeOrder(OrderConst.CANCEL_STAND_ON_UNIT, this._displayObj);
 			}
@@ -818,13 +814,13 @@ package com.alex.component
 		
 		public function toCube():Cube
 		{
-			return new Cube(_position.globalX - (_length >> 1), _position.globalY - (_width >> 1), _position.elevation, _length, _width, _height);
+			return new Cube(_position.globalX - (_length >> 1), _position.globalY - (_width >> 1), _position.z, _length, _width, _height);
 		}
 		
 		///是否站立在某些东西之上
 		public function isStandOnSomething():Boolean
 		{
-			return this._position.elevation <= 0 || this.unitLiftMe;
+			return this._position.z <= 0 || this.unitLiftMe;
 		}
 		
 		public static function make(display:IDisplay, position:Position, speed:int, length:int, width:int, height:int, mass:int, physicsType:int):PhysicsComponent

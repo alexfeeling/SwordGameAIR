@@ -1,45 +1,25 @@
-package com.alex.worldmap
+package com.alex.core.world
 {
-	import adobe.utils.CustomActions;
-	import com.alex.animation.AnimationManager;
-	import com.alex.animation.IAnimation;
-	import com.alex.constant.MoveDirection;
-	import com.alex.constant.PhysicsType;
-	import com.alex.display.IPhysics;
-	import com.alex.pool.IRecycle;
-	import com.alex.skill.SkillShow;
-	import com.alex.pattern.Commander;
-	import com.alex.pattern.IOrderExecutor;
 	import com.alex.constant.OrderConst;
-	import com.alex.controll.KeyboardController;
-	import com.alex.display.IDisplay;
-	import com.alex.display.Tree;
-	import com.alex.pattern.IOrderExecutor;
-	import com.alex.pool.InstancePool;
+	import com.alex.core.animation.*;
+	import com.alex.core.commander.*;
+	import com.alex.core.component.*;
+	import com.alex.core.display.*;
 	import com.alex.role.MainRole;
-	import com.alex.util.IdMachine;
-	import flash.display.Bitmap;
-	import flash.display.DisplayObject;
-	import flash.display.Loader;
-	import flash.display.LoaderInfo;
+	import com.alex.unit.Tree;
 	import flash.display.Sprite;
 	import flash.display.Stage;
-	import flash.events.DRMCustomProperties;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
-	import flash.geom.Point;
-	import flash.geom.Rectangle;
-	import flash.media.VideoCodec;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
-	import flash.utils.getTimer;
 	
 	/**
-	 * ...
+	 * 世界
 	 * @author alex
 	 */
-	public class WorldMap extends Sprite implements IAnimation, IOrderExecutor
+	public class World extends Sprite implements IAnimation, IOrderExecutor
 	{
 		public static var ASSET_LOAD:String = "asset/map/";
 		
@@ -76,15 +56,15 @@ package com.alex.worldmap
 		
 		private var _allOtherDisplay:Dictionary;
 		
-		public function WorldMap()
+		public function World()
 		{
 			if (_instance != null) throw "WorldMap已经有单例对象，不可再实例化";
 			this.addEventListener(Event.ADDED_TO_STAGE, init);
 		}
 		
-		private static var _instance:WorldMap;
+		private static var _instance:World;
 		
-		public static function getInstance():WorldMap
+		public static function getInstance():World
 		{
 			if (_instance == null) throw "error";
 			
@@ -98,6 +78,7 @@ package com.alex.worldmap
 			STAGE_HALF_WIDTH = STAGE_WIDTH >> 1;
 			STAGE_HALF_HEIGHT = STAGE_HEIGHT >> 1;
 			this.refreshMapPosition(_mainRole);
+			//trace(stage.scaleX, stage.scaleY);
 		}
 		
 		public function get mainRole():MainRole {
@@ -129,7 +110,7 @@ package com.alex.worldmap
 			addChild(_mapGridItemSp);
 			
 			Commander.registerExecutor(this);
-			AnimationManager.addToAnimationList(this);
+			AnimationManager.add(this);
 			
 			loadMapBlock(0, 0);
 			loadMapBlock(0, 1);
@@ -267,7 +248,7 @@ package com.alex.worldmap
 			return this._allMapGridDic[vGridX][vGridY] as Dictionary;
 		}
 		
-		public function addGridItem(vItem:IPhysics):void
+		public function addGridItem(vItem:IDisplay):void
 		{
 			if (!vItem) return;
 			
@@ -287,7 +268,7 @@ package com.alex.worldmap
 				(vItem as IDisplay).refreshDisplayXY();
 		}
 		
-		public function removeGridItem(vItem:IPhysics):void
+		public function removeGridItem(vItem:IDisplay):void
 		{
 			if (!vItem)
 			{
@@ -314,7 +295,7 @@ package com.alex.worldmap
 			delete itemDic[vItem.id];
 		}
 		
-		public function refreshGridItem(vItem:IPhysics, vOrginGridX:int, vOrginGridY:int):void
+		public function refreshGridItem(vItem:IDisplay, vOrginGridX:int, vOrginGridY:int):void
 		{
 			if (vItem.position.gridX == vOrginGridX && vItem.position.gridY == vOrginGridY)
 				return;
@@ -347,7 +328,7 @@ package com.alex.worldmap
 			urlLoader.addEventListener(Event.COMPLETE, onLoadComplete);
 			urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onError);
 			
-			urlLoader.load(new URLRequest(WorldMap.ASSET_LOAD + "mapblock_" + blockX + "_" + blockY + ".map"));
+			urlLoader.load(new URLRequest(World.ASSET_LOAD + "mapblock_" + blockX + "_" + blockY + ".map"));
 		
 		}
 		
@@ -365,7 +346,7 @@ package com.alex.worldmap
 		///单位移动，如果步伐过大，会将步伐距离切割为数次移动
 		//private static var STEP:int = 20;
 		///direction:0左，1右，2上，3下
-		//public function itemMove(vItem:IPhysics, vDirection:int, vDistance:Number):void {
+		//public function itemMove(vItem:IDisplay, vDirection:int, vDistance:Number):void {
 		//var tDistance:Number = vDistance;
 		//while (tDistance > STEP) {
 		//var isHit:Boolean = getInstance().f_itemMove(vItem, vDirection, STEP);
@@ -381,7 +362,7 @@ package com.alex.worldmap
 		//
 		///单位移动,direction:0左，1右，2上，3下
 		//0无碰撞 1碰撞 2释放 XXXX
-		//private function f_itemMove(item:IPhysics, direction:int, distance:Number):Boolean {
+		//private function f_itemMove(item:IDisplay, direction:int, distance:Number):Boolean {
 		//var pos:Position = item.position;
 		//if (pos == null) {
 		//return false;
@@ -402,7 +383,7 @@ package com.alex.worldmap
 		//if (itemDic == null) {
 		//continue;
 		//}
-		//for each(var tempItem:IPhysics in itemDic) {
+		//for each(var tempItem:IDisplay in itemDic) {
 		//if (tempItem == item || 
 		//(tempItem is Skill && (tempItem as Skill).ownner == item) ||
 		//(item is Skill && (item as Skill).ownner == tempItem))
@@ -463,13 +444,13 @@ package com.alex.worldmap
 			if (!item) return;// throw "item 不可为空";
 			//整个地图对象的新位置
 			var mapX:Number = STAGE_HALF_WIDTH - item.toDisplayObject().x;
-			var mapY:Number = STAGE_HALF_HEIGHT - item.toDisplayObject().y + item.position.elevation;
+			var mapY:Number = STAGE_HALF_HEIGHT - item.toDisplayObject().y + item.position.z;
 			this.x = mapX;
 			this.y = mapY;
 		}
 		
 		///物理单位碰撞检测
-		public static function physicsItemHitTest(vItemA:IPhysics, vItemB:IPhysics):Boolean
+		public static function physicsItemHitTest(vItemA:IDisplay, vItemB:IDisplay):Boolean
 		{
 			if (vItemA == null || vItemB == null)
 			{
@@ -479,8 +460,8 @@ package com.alex.worldmap
 			var gy1:Number = vItemA.position.globalY;
 			var gx2:Number = vItemB.position.globalX;
 			var gy2:Number = vItemB.position.globalY;
-			var ele1:Number = vItemA.position.elevation;
-			var ele2:Number = vItemB.position.elevation;
+			var ele1:Number = vItemA.position.z;
+			var ele2:Number = vItemB.position.z;
 			var length1:Number = vItemA.physicsComponent.length;
 			var width1:Number = vItemA.physicsComponent.width;
 			var height1:Number = vItemA.physicsComponent.height;
@@ -573,14 +554,14 @@ package com.alex.worldmap
 			switch (commandName)
 			{
 				case OrderConst.ADD_ITEM_TO_WORLD_MAP: //添加对象到地图中
-					var item:IPhysics = commandParam as IPhysics;
+					var item:IDisplay = commandParam as IDisplay;
 					if (item == null) break;
 					this.addGridItem(item);
 					this._mapGridItemSp.addChild((item as IDisplay).toDisplayObject());
 					this._allOtherDisplay[item.id] = item;
 					break;
 				case OrderConst.REMOVE_ITEM_FROM_WORLD_MAP: //从地图中移除对象
-					item = commandParam as IPhysics;
+					item = commandParam as IDisplay;
 					if (item && this._allOtherDisplay[item.id])
 					{
 						this._allOtherDisplay[item.id] = null;

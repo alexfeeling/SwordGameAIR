@@ -1,6 +1,6 @@
-package com.alex.animation
+package com.alex.core.animation
 {
-	import com.alex.util.IdMachine;
+	import com.alex.core.util.IdMachine;
 	import flash.events.TimerEvent;
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
@@ -45,12 +45,12 @@ package com.alex.animation
 		}
 		
 		///添加动画实现类对象到动画管理器中
-		public static function addToAnimationList(animation:IAnimation, priority:int = 0):void
+		public static function add(animation:IAnimation, priority:int = 0):void
 		{
 			getInstance().m_addToAnimation(animation, priority);
 		}
 		
-		public static function removeAnimation(animation:IAnimation):void
+		public static function remove(animation:IAnimation):void
 		{
 			getInstance().m_removeAnimation(animation);
 		}
