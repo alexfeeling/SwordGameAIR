@@ -3,7 +3,7 @@ package com.alex.skill
 	import com.alex.constant.OrderConst;
 	import com.alex.core.component.PhysicsComponent;
 	import com.alex.core.component.PhysicsType;
-	import com.alex.core.display.IDisplay;
+	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.pool.InstancePool;
 	import com.alex.core.util.IdMachine;
 	import com.alex.core.component.Position;
@@ -71,7 +71,7 @@ package com.alex.skill
 		}
 		
 		///碰撞
-		override public function collide(unit:IDisplay, moveDir:int):void
+		override public function collide(unit:IWorldUnit, moveDir:int):void
 		{
 			if (unit == null) return;
 			//unit.physicsComponent.forceImpact(MoveDirection.Z_TOP, this.getHitEnergy());
@@ -80,7 +80,7 @@ package com.alex.skill
 			this.release();
 		}
 		
-		override public function canCollide(unit:IDisplay):Boolean
+		override public function canCollide(unit:IWorldUnit):Boolean
 		{
 			return super.canCollide(unit) && unit != this.ownner;
 		}

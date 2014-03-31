@@ -2,7 +2,7 @@ package com.alex.core.component
 {
 	import com.alex.core.component.MoveDirection;
 	import com.alex.core.component.PhysicsComponent;
-	import com.alex.core.display.IDisplay;
+	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.pool.InstancePool;
 	import com.alex.core.pool.IRecycle;
 	import com.alex.core.world.World;
@@ -13,7 +13,7 @@ package com.alex.core.component
 	public class Position implements IRecycle
 	{
 		
-		public var phycItem:IDisplay;
+		public var phycItem:IWorldUnit;
 		
 		private var _gridX:int;
 		private var _gridY:int;
@@ -66,7 +66,7 @@ package com.alex.core.component
 		 * @param	vDirection
 		 * @param	vTarget
 		 */
-		public function nestleUpTo(vDirection:int, vTarget:IDisplay):void {
+		public function nestleUpTo(vDirection:int, vTarget:IWorldUnit):void {
 			var myPhysicsComponent:PhysicsComponent = this.phycItem.physicsComponent;
 			var targetPhysicsComponent:PhysicsComponent = vTarget.physicsComponent;
 			var targetPosition:Position = vTarget.position;

@@ -1,4 +1,4 @@
-package com.alex.core.worldmap 
+package com.alex.core.world 
 {
 	import adobe.utils.CustomActions;
 	import com.alex.constant.OrderConst;

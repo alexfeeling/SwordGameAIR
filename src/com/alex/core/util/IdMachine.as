@@ -15,6 +15,11 @@ package com.alex.core.util
 			throw "IdMacine不能被实例化::IdMacine can't be instantiate";
 		}
 		
+		/**
+		 * 返回一个根据类对象名增加的唯一ID
+		 * @param	vClass
+		 * @return
+		 */
 		public static function getId(vClass:Class):String {
 			if (_idDic[vClass] == null) {
 				_idDic[vClass] = 0;

@@ -1,10 +1,9 @@
 package com.alex.core.world
 {
-	import com.alex.constant.OrderConst;
 	import com.alex.core.animation.*;
 	import com.alex.core.commander.*;
 	import com.alex.core.component.*;
-	import com.alex.core.display.*;
+	import com.alex.core.unit.IWorldUnit;
 	import com.alex.role.MainRole;
 	import com.alex.unit.Tree;
 	import flash.display.Sprite;
@@ -21,6 +20,7 @@ package com.alex.core.world
 	 */
 	public class World extends Sprite implements IAnimation, IOrderExecutor
 	{
+		
 		public static var ASSET_LOAD:String = "asset/map/";
 		
 		///所有地图块，用字典存放
@@ -29,11 +29,12 @@ package com.alex.core.world
 		///=================打算改成只用地图格存储对象===============
 		private var _allMapGridDic:Dictionary;
 		
-		private static var MIDDLE_BLOCK_X:int;
-		private static var MIDDLE_BLOCK_Y:int;
+		//private static var MIDDLE_BLOCK_X:int;
+		//private static var MIDDLE_BLOCK_Y:int;
 		
-		///地图格大小
+		///地图格宽度
 		public static const GRID_WIDTH:int = 40 * 2;
+		///地图格高度
 		public static const GRID_HEIGHT:int = 30 * 2;
 		
 		///地图块水平最大存放对象个数
@@ -47,14 +48,20 @@ package com.alex.core.world
 		public static var STAGE_HALF_WIDTH:int = 512;
 		public static var STAGE_HALF_HEIGHT:int = 384;
 		
+		public static const ADD_ITEM_TO_WORLD:String = "world_add_item_to_world";
+		
+		public static const REMOVE_ITEM_FROM_WORLD:String = "world_remove_item_from_world";
+		
 		///存放地图背景图片sprite
 		private var _mapImageSp:Sprite;
 		///存放地图格对象sprite
 		private var _mapGridItemSp:Sprite;
 		
-		private var _mainRole:MainRole;
+		///主角
+		private var _leadingRole:IWorldUnit;
 		
-		private var _allOtherDisplay:Dictionary;
+		///其它单位
+		private var _allOtherUnit:Dictionary;
 		
 		public function World()
 		{
@@ -77,12 +84,15 @@ package com.alex.core.world
 			STAGE_HEIGHT = (event.target as Stage).stageHeight;
 			STAGE_HALF_WIDTH = STAGE_WIDTH >> 1;
 			STAGE_HALF_HEIGHT = STAGE_HEIGHT >> 1;
-			this.refreshMapPosition(_mainRole);
+			this.refreshMapPosition(_leadingRole);
 			//trace(stage.scaleX, stage.scaleY);
 		}
 		
-		public function get mainRole():MainRole {
-			return this._mainRole;
+		/**
+		 * 主角
+		 */
+		public function get leadingRole():IWorldUnit {
+			return this._leadingRole;
 		}
 		
 		private function init(event:Event):void
@@ -99,7 +109,7 @@ package com.alex.core.world
 			STAGE_HALF_HEIGHT = STAGE_HALF_HEIGHT >> 1;
 			
 			_allMapGridDic = new Dictionary();
-			_allOtherDisplay = new Dictionary();
+			_allOtherUnit = new Dictionary();
 			
 			BLOCK_X_SIZE = 8; //Math.ceil(this.stageWidth / WorldMap.GRID_WIDTH);
 			BLOCK_Y_SIZE = 8; //Math.ceil(this.stageHeight / WorldMap.GRID_HEIGHT);
@@ -137,8 +147,8 @@ package com.alex.core.world
 				if (mapGridObj.ignore == 1 || mapGridObj.gridX >= BLOCK_X_SIZE || mapGridObj.gridY >= BLOCK_Y_SIZE)
 					continue;
 				
-				var differBlockXNum:int = (newBlockX - MIDDLE_BLOCK_X) * BLOCK_X_SIZE;
-				var differBlockYNum:int = (newBlockY - MIDDLE_BLOCK_Y) * BLOCK_Y_SIZE;
+				//var differBlockXNum:int = (newBlockX - MIDDLE_BLOCK_X) * BLOCK_X_SIZE;
+				//var differBlockYNum:int = (newBlockY - MIDDLE_BLOCK_Y) * BLOCK_Y_SIZE;
 				if (mapGridObj.gridX != null && mapGridObj.gridY != null)
 				{
 					var position:Position = Position.make(newBlockX * BLOCK_X_SIZE + int(mapGridObj.gridX), newBlockY * BLOCK_Y_SIZE + int(mapGridObj.gridY));
@@ -146,30 +156,26 @@ package com.alex.core.world
 						position.insideX = mapGridObj.insideX;
 					if (mapGridObj.insideY != null)
 						position.insideY = mapGridObj.insideY;
-				}
-				else continue;
+				} else continue;
+				
 				switch (mapGridObj.type)
 				{
-					//case "wall": //墙格，无法通过的无形障碍格
-					//var gridItem:IMapGridItem = new WallGrid(position);
-					//newMapBlock.addItem(gridItem);
-					//break;
 					case "tree": //树
-						//var displayItem:IDisplay = InstancePool.getTree(position);
-						var displayItem:IDisplay = Tree.make(position);
+						var displayItem:IWorldUnit = Tree.make(position);
 						this.addGridItem(displayItem);
 						this._mapGridItemSp.addChild(displayItem.toDisplayObject());
-						this._allOtherDisplay[displayItem.id] = displayItem;
+						this._allOtherUnit[displayItem.id] = displayItem;
 						break;
 					case "main_role": //主角
-						if (this._mainRole != null) throw "error";
-						this._mainRole = MainRole.make(position); //new MainRole().init(position); // InstancePool.getMainRole(position);
-						this.addGridItem(this._mainRole);
-						this._mapGridItemSp.addChild(this._mainRole.toDisplayObject());
-						var mapX:Number = STAGE_HALF_WIDTH - this._mainRole.toDisplayObject().x;
-						var mapY:Number = STAGE_HALF_HEIGHT - this._mainRole.toDisplayObject().y;
+						if (this._leadingRole != null) throw "error";
+						this._leadingRole = MainRole.make(position); //new MainRole().init(position); // InstancePool.getMainRole(position);
+						this.addGridItem(this._leadingRole);
+						this._mapGridItemSp.addChild(this._leadingRole.toDisplayObject());
+						var mapX:Number = STAGE_HALF_WIDTH - this._leadingRole.toDisplayObject().x;
+						var mapY:Number = STAGE_HALF_HEIGHT - this._leadingRole.toDisplayObject().y;
 						this.x = mapX;
 						this.y = mapY;
+						refreshMapPosition(_leadingRole);
 						break;
 				}
 			}
@@ -248,7 +254,7 @@ package com.alex.core.world
 			return this._allMapGridDic[vGridX][vGridY] as Dictionary;
 		}
 		
-		public function addGridItem(vItem:IDisplay):void
+		public function addGridItem(vItem:IWorldUnit):void
 		{
 			if (!vItem) return;
 			
@@ -264,11 +270,11 @@ package com.alex.core.world
 				this._allMapGridDic[position.gridX][position.gridY] = new Dictionary();
 			
 			this._allMapGridDic[position.gridX][position.gridY][vItem.id] = vItem;
-			if (vItem is IDisplay)
-				(vItem as IDisplay).refreshDisplayXY();
+			if (vItem is IWorldUnit)
+				(vItem as IWorldUnit).refreshXY();
 		}
 		
-		public function removeGridItem(vItem:IDisplay):void
+		public function removeGridItem(vItem:IWorldUnit):void
 		{
 			if (!vItem)
 			{
@@ -295,7 +301,7 @@ package com.alex.core.world
 			delete itemDic[vItem.id];
 		}
 		
-		public function refreshGridItem(vItem:IDisplay, vOrginGridX:int, vOrginGridY:int):void
+		public function refreshGridItem(vItem:IWorldUnit, vOrginGridX:int, vOrginGridY:int):void
 		{
 			if (vItem.position.gridX == vOrginGridX && vItem.position.gridY == vOrginGridY)
 				return;
@@ -351,13 +357,13 @@ package com.alex.core.world
 		//while (tDistance > STEP) {
 		//var isHit:Boolean = getInstance().f_itemMove(vItem, vDirection, STEP);
 		//if (isHit) {
-		//vItem.refreshDisplayXY();
+		//vItem.refreshXY();
 		//return;
 		//}
 		//tDistance -= STEP;
 		//}
 		//getInstance().f_itemMove(vItem, vDirection, tDistance);
-		//vItem.refreshDisplayXY();
+		//vItem.refreshXY();
 		//}
 		//
 		///单位移动,direction:0左，1右，2上，3下
@@ -439,7 +445,7 @@ package com.alex.core.world
 		}
 		
 		//整个地图对象的新位置
-		private function refreshMapPosition(item:IDisplay):void
+		private function refreshMapPosition(item:IWorldUnit):void
 		{
 			if (!item) return;// throw "item 不可为空";
 			//整个地图对象的新位置
@@ -450,7 +456,7 @@ package com.alex.core.world
 		}
 		
 		///物理单位碰撞检测
-		public static function physicsItemHitTest(vItemA:IDisplay, vItemB:IDisplay):Boolean
+		public static function physicsItemHitTest(vItemA:IWorldUnit, vItemB:IWorldUnit):Boolean
 		{
 			if (vItemA == null || vItemB == null)
 			{
@@ -474,7 +480,12 @@ package com.alex.core.world
 			return false;
 		}
 		
-		/* INTERFACE alex.animation.IAnimation */
+		/* INTERFACE com.alex.core.animation.IAnimation */
+		
+		public function get id():String
+		{
+			return "WorldMap";
+		}
 		
 		public function isPause():Boolean
 		{
@@ -488,12 +499,12 @@ package com.alex.core.world
 		
 		public function gotoNextFrame(passedTime:Number):void
 		{
-			if (this._mainRole)
+			if (this._leadingRole)
 			{
-				this._mainRole.gotoNextFrame(passedTime);
-				this.refreshMapPosition(this._mainRole);
+				this._leadingRole.gotoNextFrame(passedTime);
+				this.refreshMapPosition(this._leadingRole);
 			}
-			for each (var display:IAnimation in this._allOtherDisplay)
+			for each (var display:IAnimation in this._allOtherUnit)
 			{
 				if (display)
 					display.gotoNextFrame(passedTime);
@@ -546,47 +557,33 @@ package com.alex.core.world
 		/* INTERFACE alex.pattern.ICommandHandler */
 		public function getExecuteOrderList():Array
 		{
-			return [OrderConst.ADD_ITEM_TO_WORLD_MAP, OrderConst.REMOVE_ITEM_FROM_WORLD_MAP];
+			return [ADD_ITEM_TO_WORLD, REMOVE_ITEM_FROM_WORLD];
 		}
 		
 		public function executeOrder(commandName:String, commandParam:Object = null):void
 		{
 			switch (commandName)
 			{
-				case OrderConst.ADD_ITEM_TO_WORLD_MAP: //添加对象到地图中
-					var item:IDisplay = commandParam as IDisplay;
-					if (item == null) break;
-					this.addGridItem(item);
-					this._mapGridItemSp.addChild((item as IDisplay).toDisplayObject());
-					this._allOtherDisplay[item.id] = item;
+				case ADD_ITEM_TO_WORLD: //添加对象到地图中
+					var unit:IWorldUnit = commandParam as IWorldUnit;
+					if (unit == null) break;
+					this.addGridItem(unit);
+					this._mapGridItemSp.addChild((unit as IWorldUnit).toDisplayObject());
+					this._allOtherUnit[unit.id] = unit;
 					break;
-				case OrderConst.REMOVE_ITEM_FROM_WORLD_MAP: //从地图中移除对象
-					item = commandParam as IDisplay;
-					if (item && this._allOtherDisplay[item.id])
+				case REMOVE_ITEM_FROM_WORLD: //从地图中移除对象
+					unit = commandParam as IWorldUnit;
+					if (unit && this._allOtherUnit[unit.id])
 					{
-						this._allOtherDisplay[item.id] = null;
-						delete this._allOtherDisplay[item.id];
-						this.removeGridItem(item);
+						this._allOtherUnit[unit.id] = null;
+						delete this._allOtherUnit[unit.id];
+						this.removeGridItem(unit);
 					}
 					break;
 			}
 		}
 		
 		public function getExecutorId():String
-		{
-			return "WorldMap";
-		}
-		
-		/* INTERFACE com.alex.pattern.ICommandSender */
-		
-		public function sendCommand(commandName:String, commandParam:Object = null):void
-		{
-			Commander.sendOrder(commandName, commandParam);
-		}
-		
-		/* INTERFACE com.alex.animation.IAnimation */
-		
-		public function get id():String
 		{
 			return "WorldMap";
 		}

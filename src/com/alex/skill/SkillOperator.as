@@ -6,6 +6,7 @@ package com.alex.skill
 	import com.alex.core.component.PhysicsComponent;
 	import com.alex.core.util.Cube;
 	import com.alex.core.component.Position;
+	import com.alex.core.world.World;
 	import com.alex.unit.AttackableUnit;
 	import flash.geom.Point;
 	
@@ -64,7 +65,7 @@ package com.alex.skill
 							var sPosition:Position = _attackableUnit.position.copy();
 							var skill:SkillShow = SkillShow.make(frameData.distanceId, _attackableUnit, sPosition, 
 								_attackableUnit.physicsComponent.faceDirection == 1 ? MoveDirection.X_RIGHT : MoveDirection.X_LEFT, frameData);
-							Commander.sendOrder(OrderConst.ADD_ITEM_TO_WORLD_MAP, skill);
+							Commander.sendOrder(World.ADD_ITEM_TO_WORLD, skill);
 							break;
 						case "lockTarget"://锁定目标
 							_attackableUnit.lockTarget(getAttackCube());

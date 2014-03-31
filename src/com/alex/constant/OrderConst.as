@@ -33,9 +33,9 @@ package com.alex.constant
 		
 		public static const REMOVE_ALL_COLUMN_MAP_BLOCK:String = "cmd_remove_all_column_map_block";
 		
-		public static const ADD_ITEM_TO_WORLD_MAP:String = "cmd_add_item_to_world_map";
-		
-		public static const REMOVE_ITEM_FROM_WORLD_MAP:String = "cmd_remove_item_from_world_map";
+		//public static const ADD_ITEM_TO_WORLD_MAP:String = "cmd_add_item_to_world_map";
+		//
+		//public static const REMOVE_ITEM_FROM_WORLD_MAP:String = "cmd_remove_item_from_world_map";
 		
 		public static const CHANGE_FACE_DIRECTION:String = "set_face_direction";
 		

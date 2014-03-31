@@ -6,8 +6,8 @@ package com.alex.unit
 	import com.alex.core.component.AttributeComponent;
 	import com.alex.core.component.MoveDirection;
 	import com.alex.core.component.PhysicsType;
-	import com.alex.core.display.IAttribute;
-	import com.alex.core.display.IDisplay;
+	import com.alex.core.unit.IAttributeUnit;
+	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.util.Cube;
 	import com.alex.core.world.World;
 	import com.alex.skill.SkillFrameData;
@@ -23,7 +23,7 @@ package com.alex.unit
 	 * ...
 	 * @author alex
 	 */
-	public class AttackableUnit extends BaseUnit implements IAttackable, IAttribute
+	public class AttackableUnit extends BaseUnit implements IAttackable, IAttributeUnit
 	{
 		/**
 		 * 攻击目标
@@ -198,7 +198,7 @@ package com.alex.unit
 				{
 					continue;
 				}
-				for each (var detectTarget:IDisplay in gridItemDic)
+				for each (var detectTarget:IWorldUnit in gridItemDic)
 				{
 					if (!detectTarget || detectTarget==this || detectTarget.physicsComponent.physicsType != PhysicsType.SOLID)
 						continue;

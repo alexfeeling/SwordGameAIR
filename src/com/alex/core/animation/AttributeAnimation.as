@@ -2,18 +2,18 @@ package com.alex.core.animation
 {
 	import com.alex.core.commander.Commander;
 	import com.alex.core.commander.IOrderExecutor;
-	import com.alex.core.display.IDisplay;
+	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.util.IdMachine;
 	import flash.display.DisplayObject;
 	
 	/**
-	 * ...
+	 * 通过定义属性变化的缓动动画
 	 * @author alexfeeling
 	 */
 	public class AttributeAnimation implements IAnimation
 	{
 		
-		private var _target:IDisplay;
+		private var _target:IWorldUnit;
 		private var _targetDisplay:DisplayObject;
 		private var _beforeAttrobj:Object;
 		private var _attrObj:Object;
@@ -25,7 +25,7 @@ package com.alex.core.animation
 		private var _endOrderParam:Object;
 		private var _endOrderExecutor:IOrderExecutor;
 		
-		public function AttributeAnimation(target:IDisplay, attrObj:Object, time:Number, 
+		public function AttributeAnimation(target:IWorldUnit, attrObj:Object, time:Number, 
 			endOrder:String = null, endOrderParam:Object = null, endOrderExecutor:IOrderExecutor = null)
 		{
 			this._id = IdMachine.getId(AttributeAnimation);

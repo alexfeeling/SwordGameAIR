@@ -3,7 +3,7 @@ package com.alex.core.component
 	import com.alex.constant.OrderConst;
 	import com.alex.core.commander.Commander;
 	import com.alex.core.commander.IOrderExecutor;
-	import com.alex.core.display.IDisplay;
+	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.pool.InstancePool;
 	import com.alex.core.pool.IRecycle;
 	import com.alex.core.util.Cube;
@@ -28,7 +28,7 @@ package com.alex.core.component
 		public static const GRAVITY:Number = 9.8 * 1.2;
 		
 		///显示对象，拥有本移动组件的对象
-		private var _displayObj:IDisplay;
+		private var _displayObj:IWorldUnit;
 		
 		private var _length:Number = 0;
 		private var _width:Number = 0;
@@ -72,7 +72,7 @@ package com.alex.core.component
 		private var _id:String;
 		
 		///托举着我的单位
-		public var unitLiftMe:IDisplay;
+		public var unitLiftMe:IWorldUnit;
 		
 		///踩着我的单位
 		public var unitStandOnMeDic:Dictionary;
@@ -88,7 +88,7 @@ package com.alex.core.component
 		
 		}
 		
-		public function init(vDisplay:IDisplay, vPosition:Position, vSpeed:Number, vLength:Number, vWidth:Number, vHeight:Number, vMass:Number, vPhysicsType:int):PhysicsComponent
+		public function init(vDisplay:IWorldUnit, vPosition:Position, vSpeed:Number, vLength:Number, vWidth:Number, vHeight:Number, vMass:Number, vPhysicsType:int):PhysicsComponent
 		{
 			this._isRelease = false;
 			this._id = IdMachine.getId(PhysicsComponent);
@@ -532,7 +532,7 @@ package com.alex.core.component
 			}
 			for (var unitId:String in this.unitStandOnMeDic)
 			{
-				var unit:IDisplay = this.unitStandOnMeDic[unitId] as IDisplay;
+				var unit:IWorldUnit = this.unitStandOnMeDic[unitId] as IWorldUnit;
 				if (unit && !this.toCube().isLiftCube(unit.physicsComponent.toCube()))
 				{
 					unit.physicsComponent.executeOrder(OrderConst.CANCEL_STAND_ON_UNIT);
@@ -596,7 +596,7 @@ package com.alex.core.component
 			}
 			for (var unitId:String in this.unitStandOnMeDic)
 			{
-				var unit:IDisplay = this.unitStandOnMeDic[unitId] as IDisplay;
+				var unit:IWorldUnit = this.unitStandOnMeDic[unitId] as IWorldUnit;
 				if (unit && !this.toCube().isLiftCube(unit.physicsComponent.toCube()))
 				{
 					unit.physicsComponent.executeOrder(OrderConst.CANCEL_STAND_ON_UNIT);
@@ -649,7 +649,7 @@ package com.alex.core.component
 				}
 				for (var unitId:String in this.unitStandOnMeDic)
 				{
-					var unit:IDisplay = this.unitStandOnMeDic[unitId] as IDisplay;
+					var unit:IWorldUnit = this.unitStandOnMeDic[unitId] as IWorldUnit;
 					if (unit && !this.toCube().isLiftCube(unit.physicsComponent.toCube()))
 					{
 						unit.physicsComponent.executeOrder(OrderConst.CANCEL_STAND_ON_UNIT);
@@ -757,20 +757,20 @@ package com.alex.core.component
 					this.forceImpact(dir, energy, loseControll);
 					break;
 				case OrderConst.STAND_ON_UNIT: 
-					this.unitLiftMe = orderParam as IDisplay;
+					this.unitLiftMe = orderParam as IWorldUnit;
 					if (this.unitLiftMe)
 					{
 						this.unitLiftMe.physicsComponent.executeOrder(OrderConst.LIFT_UNIT, this._displayObj);
 					}
 					break;
 				case OrderConst.LIFT_UNIT: 
-					if (orderParam is IDisplay)
+					if (orderParam is IWorldUnit)
 					{
-						this.unitStandOnMeDic[(orderParam as IDisplay).id] = orderParam;
+						this.unitStandOnMeDic[(orderParam as IWorldUnit).id] = orderParam;
 					}
 					break;
 				case OrderConst.CANCEL_LIFT_UNIT: 
-					var unitId:String = (orderParam as IDisplay).id;
+					var unitId:String = (orderParam as IWorldUnit).id;
 					if (this.unitStandOnMeDic[unitId])
 					{
 						delete this.unitStandOnMeDic[unitId];
@@ -798,7 +798,7 @@ package com.alex.core.component
 				this.unitLiftMe.physicsComponent.executeOrder(OrderConst.CANCEL_LIFT_UNIT, this._displayObj);
 				this.unitLiftMe = null;
 			}
-			for each (var unit:IDisplay in this.unitStandOnMeDic)
+			for each (var unit:IWorldUnit in this.unitStandOnMeDic)
 			{
 				unit.physicsComponent.executeOrder(OrderConst.CANCEL_STAND_ON_UNIT, this._displayObj);
 			}
@@ -823,7 +823,7 @@ package com.alex.core.component
 			return this._position.z <= 0 || this.unitLiftMe;
 		}
 		
-		public static function make(display:IDisplay, position:Position, speed:int, length:int, width:int, height:int, mass:int, physicsType:int):PhysicsComponent
+		public static function make(display:IWorldUnit, position:Position, speed:int, length:int, width:int, height:int, mass:int, physicsType:int):PhysicsComponent
 		{
 			//InstancePool.getPhysicsComponent(display, position, speed, length, width, height, mass, physicsType);
 			return PhysicsComponent(InstancePool.getInstance(PhysicsComponent)).init(display, position, speed, length, width, height, mass, physicsType);

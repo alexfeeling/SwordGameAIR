@@ -1,4 +1,4 @@
-package com.alex.core.display 
+package com.alex.core.unit 
 {
 	import com.alex.core.component.AttributeComponent;
 	
@@ -6,7 +6,7 @@ package com.alex.core.display
 	 * ...
 	 * @author alexfeeling
 	 */
-	public interface IAttribute 
+	public interface IAttributeUnit 
 	{
 		
 		function get attributeComponent():AttributeComponent;

@@ -6,7 +6,7 @@ package com.alex.unit
 	import com.alex.core.component.MoveDirection;
 	import com.alex.core.component.PhysicsComponent;
 	import com.alex.core.component.PhysicsType;
-	import com.alex.core.display.IDisplay;
+	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.pool.InstancePool;
 	import com.alex.core.component.Position;
 	import com.alex.core.world.World;
@@ -15,10 +15,10 @@ package com.alex.unit
 	import flash.utils.Dictionary;
 	
 	/**
-	 * ...
+	 * 基本单位
 	 * @author alexfeeling
 	 */
-	public class BaseUnit implements IDisplay, IAnimation
+	public class BaseUnit implements IWorldUnit
 	{
 		protected var _isRelease:Boolean;
 		
@@ -44,7 +44,7 @@ package com.alex.unit
 			this._physicsComponent = vPhysicsComponent;
 			this.createUI();
 			Commander.registerExecutor(this);
-			this.refreshDisplayXY();
+			this.refreshXY();
 			return this;
 		}
 		
@@ -95,8 +95,12 @@ package com.alex.unit
 			;
 		}
 		
-		///碰撞到刚体
-		public function collide(targetUnit:IDisplay, moveDir:int):void
+		/**
+		 * 碰撞到刚体的处理
+		 * @param	targetUnit 目标单位
+		 * @param	moveDir 本次移动的方向
+		 */
+		public function collide(targetUnit:IWorldUnit, moveDir:int):void
 		{
 			switch(_physicsComponent.physicsType) {
 				case PhysicsType.SOLID:
@@ -127,7 +131,7 @@ package com.alex.unit
 			return _physicsComponent;
 		}
 		
-		public function refreshDisplayXY():void
+		public function refreshXY():void
 		{
 			if (this._isRelease || this.position == null) return;
 			
@@ -139,7 +143,7 @@ package com.alex.unit
 		{
 			if (this._isRelease) throw "release error";
 			
-			Commander.sendOrder(OrderConst.REMOVE_ITEM_FROM_WORLD_MAP, this);
+			Commander.sendOrder(World.REMOVE_ITEM_FROM_WORLD, this);
 			Commander.cancelExecutor(this);
 			if (this._physicsComponent)
 			{
@@ -192,8 +196,8 @@ package com.alex.unit
 		public function move(vDirection:int, vDistance:int):void
 		{
 			var tDistance:int = vDistance;
-			var collidedUnit:IDisplay = null;
-			var tempCollidedUnit:IDisplay = null;
+			var collidedUnit:IWorldUnit = null;
+			var tempCollidedUnit:IWorldUnit = null;
 			while (tDistance > 0)
 			{
 				tempCollidedUnit = f_itemMove(vDirection, Math.min(tDistance, STEP));
@@ -205,32 +209,29 @@ package com.alex.unit
 					break;
 				}
 			}
-			this.refreshDisplayXY();
+			refreshXY();
 			if (vDirection == MoveDirection.Z_BOTTOM && collidedUnit)
-			{
-				this._physicsComponent.executeOrder(OrderConst.STAND_ON_UNIT, collidedUnit);
-			}
+				_physicsComponent.executeOrder(OrderConst.STAND_ON_UNIT, collidedUnit);
 		}
 		
 		///单位移动,direction:0左，1右，2上，3下
 		//0无碰撞 1碰撞 2释放 XXXX
-		private function f_itemMove(direction:int, distance:int):IDisplay
+		private function f_itemMove(direction:int, distance:int):IWorldUnit
 		{
 			//先移动相应距离
 			_position.move(direction, distance);
-			//return null;
 			if (_physicsComponent.physicsType == PhysicsType.SOLID)
 				var unitList:Array = World.getInstance().getAroudItemsByMove(direction, _position);
 			else
 				unitList = World.getInstance().getAroudItems(_position);
 			
 			var isHitUnit:Boolean = false;
-			var collidedUnit:IDisplay = null;
+			var collidedUnit:IWorldUnit = null;
 			for (var i:int = 0; i < unitList.length; i++)
 			{
 				var unitDic:Dictionary = unitList[i] as Dictionary;
 				if (unitDic == null) continue;
-				for each (var targetUnit:IDisplay in unitDic)
+				for each (var targetUnit:IWorldUnit in unitDic)
 				{
 					if (this.canCollide(targetUnit) && 
 						this.physicsComponent.toCube().intersects(targetUnit.physicsComponent.toCube()))
@@ -244,8 +245,12 @@ package com.alex.unit
 			return collidedUnit;
 		}
 		
-		///目标是固体才可碰撞
-		public function canCollide(target:IDisplay):Boolean
+		/**
+		 * 是否可碰撞该对象，目标是固体才可碰撞
+		 * @param	target
+		 * @return
+		 */
+		public function canCollide(target:IWorldUnit):Boolean
 		{
 			return this != target && target.physicsComponent.physicsType == PhysicsType.SOLID;
 		}

@@ -3,7 +3,7 @@ package com.alex.core.component
 	import com.alex.constant.OrderConst;
 	import com.alex.core.commander.Commander;
 	import com.alex.core.commander.IOrderExecutor;
-	import com.alex.core.display.IDisplay;
+	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.pool.InstancePool;
 	import com.alex.core.pool.IRecycle;
 	import com.alex.core.util.IdMachine;
@@ -17,7 +17,7 @@ package com.alex.core.component
 		
 		private var _id:String;
 		
-		private var _phycObject:IDisplay;
+		private var _phycObject:IWorldUnit;
 		
 		///气血
 		private var _life:int = 0;
@@ -35,7 +35,7 @@ package com.alex.core.component
 		
 		}
 		
-		protected function init(phycObj:IDisplay, maxLife:int, maxEnergy:int, life:int = -1, energy:int = -1):AttributeComponent
+		protected function init(phycObj:IWorldUnit, maxLife:int, maxEnergy:int, life:int = -1, energy:int = -1):AttributeComponent
 		{
 			this._isRelease = false;
 			this._id = IdMachine.getId(AttributeComponent);
@@ -48,7 +48,7 @@ package com.alex.core.component
 			return this;
 		}
 		
-		public static function make(phycObj:IDisplay, maxLife:int, maxEnergy:int, life:int = -1, energy:int = -1):AttributeComponent
+		public static function make(phycObj:IWorldUnit, maxLife:int, maxEnergy:int, life:int = -1, energy:int = -1):AttributeComponent
 		{
 			return AttributeComponent(InstancePool.getInstance(AttributeComponent)).init(phycObj, maxLife, maxEnergy, life, energy);
 		}
