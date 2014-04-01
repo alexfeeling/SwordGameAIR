@@ -89,30 +89,35 @@ package com.alex.ai
 		private function analyseTarget():void {
 			if (_target == null) return;
 			var status:Object = { };
-			if (_target.physicsComponent.xEnergy == 0) {
+			if (_target.physicsComponent.velocityX == 0) {
 				status.moveX = false;
 			} else {
 				status.moveX = true;
-				if ((_body.position.globalX > _target.position.globalX && _target.physicsComponent.velocityX > 0) ||
-					(_body.position.globalX < _target.position.globalX && _target.physicsComponent.velocityX < 0))
+				if (_body.position.globalX > _target.position.globalX && _target.physicsComponent.velocityX > 0)
 				{
 					status.closeMe = true;
+					status.xDir = "right";
+				} else if (_body.position.globalX < _target.position.globalX && _target.physicsComponent.velocityX < 0) 
+				{
+					status.closeMe = true;
+					status.xDir = "left";
 				} else status.closeMe = false;
 			}
-			if (_target.physicsComponent.yEnergy == 0) {
+			if (_target.physicsComponent.velocityY == 0) {
 				status.moveY = false;
 				if (status.moveX == false) {
 					status.closeMe = false;
 				}
 			} else {
 				status.moveY = true;
-				if (status.closeMe) {
-					if ((_body.position.globalX > _target.position.globalX && _target.physicsComponent.velocityX > 0) ||
-						(_body.position.globalX < _target.position.globalX && _target.physicsComponent.velocityX < 0))
-					{
-						status.closeMe = true;
-					} else status.closeMe = false;
-				}
+				if (_body.position.globalX > _target.position.globalX && _target.physicsComponent.velocityX > 0)					{
+					status.closeMe = true;
+				} else if (_body.position.globalX < _target.position.globalX && _target.physicsComponent.velocityX < 0) {
+					status.closeMe = true;
+				} else status.closeMe = false;
+				//if (status.closeMe) {
+					//
+				//}
 				
 			}
 		}
