@@ -107,7 +107,7 @@ package com.alex.role
 					this._physicsComponent.stopMove(int(orderParam));
 					break;
 				case OrderConst.ROLE_START_JUMP: 
-					this._physicsComponent.startJump();
+					this._physicsComponent.readyJump();
 					break;
 				case OrderConst.ROLE_END_JUMP:
 					this._physicsComponent.endJump();

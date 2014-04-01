@@ -19,6 +19,7 @@ package com.alex.core.component
 	
 	/**
 	 * 物理组件，代表显示对象在地图世界中的实体表示。长宽高，位置，
+	 * 负责移动，位置更新
 	 * @author alex
 	 */
 	public class PhysicsComponent implements IOrderExecutor, IRecycle
@@ -82,6 +83,9 @@ package com.alex.core.component
 		
 		///是否被抓住
 		public var isBeingCatched:Boolean = false;
+		
+		private var _isJump:Boolean = false;
+		public var jumpEnery:int = 70;
 		
 		public function PhysicsComponent()
 		{
@@ -294,7 +298,9 @@ package com.alex.core.component
 			}
 		}
 		
-		///强制停止移动
+		/**
+		 * 强制停止移动
+		 */
 		public function forceStopMove():void
 		{
 			this._isMoveLeft = false;
@@ -305,14 +311,17 @@ package com.alex.core.component
 			this._yVelocity = 0;
 		}
 		
+		
 		public function forceStopZ():void
 		{
 			this._zVelocity = 0;
 		}
 		
-		private var _isJump:Boolean = false;
-		public var jumpEnery:int = 70;
-		public function startJump():void {
+		
+		/**
+		 * 准备跳跃，一有机会就立刻跳
+		 */
+		public function readyJump():void {
 			this._isJump = true;
 		}
 		
@@ -356,37 +365,37 @@ package com.alex.core.component
 		public function get xEnergy():Number
 		{
 			if (this._xVelocity >= 0)
-			{
 				return 0.5 * this._mass * Math.pow(this._xVelocity, 2);
-			}
 			else
-			{
 				return -0.5 * this._mass * Math.pow(this._xVelocity, 2);
-			}
 		}
 		
 		public function get yEnergy():Number
 		{
 			if (this._yVelocity >= 0)
-			{
 				return 0.5 * this._mass * Math.pow(this._yVelocity, 2);
-			}
 			else
-			{
 				return -0.5 * this._mass * Math.pow(this._yVelocity, 2);
-			}
 		}
 		
 		public function get zEnergy():Number
 		{
 			if (this._zVelocity >= 0)
-			{
 				return 0.5 * this._mass * Math.pow(this._zVelocity, 2);
-			}
 			else
-			{
 				return -0.5 * this._mass * Math.pow(this._zVelocity, 2);
-			}
+		}
+		
+		public function get velocityX():Number {
+			return _xVelocity;
+		}
+		
+		public function get velocityY():Number {
+			return _yVelocity;
+		}
+		
+		public function get velocityZ():Number {
+			return _zVelocity;
 		}
 		
 		///获取质量

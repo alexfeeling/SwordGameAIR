@@ -1,5 +1,6 @@
 package com.alex.game
 {
+	import com.alex.ai.ElectronicBrain;
 	import com.alex.controll.KeyboardController;
 	import com.alex.core.animation.AnimationManager;
 	import com.alex.core.component.PhysicsComponent;
@@ -35,6 +36,7 @@ package com.alex.game
 			InstancePool.preset(Position, 20);
 			InstancePool.preset(Tree, 20);
 			InstancePool.preset(PhysicsComponent, 20);
+			InstancePool.preset(ElectronicBrain, 20);
 			
 			//启动动画管理器
 			AnimationManager.startUp(60);

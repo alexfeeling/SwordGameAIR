@@ -1,5 +1,6 @@
 package com.alex.unit
 {
+	import com.alex.ai.ElectronicBrain;
 	import com.alex.constant.OrderConst;
 	import com.alex.core.animation.AnimationManager;
 	import com.alex.core.animation.AttributeAnimation;
@@ -54,6 +55,9 @@ package com.alex.unit
 		///是否正在死亡
 		protected var _isDying:Boolean = false;
 		
+		///电子大脑
+		private var _brain:ElectronicBrain;
+		
 		public function AttackableUnit()
 		{
 			
@@ -94,6 +98,8 @@ package com.alex.unit
 				SkillFrameData.make().initByObj( { type:"lockTarget" } ), null, null, null, 
 				SkillFrameData.make().initByObj( { type:"hurt_target" } ), null,
 				SkillFrameData.make().initByObj( { type:"end" } )];
+				
+			_brain = ElectronicBrain.make();
 		}
 		
 		/**
@@ -345,6 +351,18 @@ package com.alex.unit
 					break;
 				case OrderConst.DIED_COMPLETE: 
 					this.release();
+					break;
+				case "brain_order_start_move":
+					physicsComponent.startMove(int(orderParam));
+					break;
+				case "brain_order_stop_move":
+					physicsComponent.stopMove(int(orderParam));
+					break;
+				case "brain_order_force_stop_move":
+					physicsComponent.forceStopMove();
+					break;
+				case "brain_order_use_skill":
+					startAttack(String(orderParam));
 					break;
 				default: 
 					super.executeOrder(orderName, orderParam);
