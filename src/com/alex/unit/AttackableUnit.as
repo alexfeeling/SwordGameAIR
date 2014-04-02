@@ -1,5 +1,6 @@
 package com.alex.unit
 {
+	import com.alex.ai.BrainOrder;
 	import com.alex.ai.ElectronicBrain;
 	import com.alex.constant.OrderConst;
 	import com.alex.core.animation.AnimationManager;
@@ -135,7 +136,7 @@ package com.alex.unit
 				//攻击者在我面对的方向
 				
 			}
-		
+			_brain.executeOrder(BrainOrder.BE_ATTACKED);
 		}
 		
 		/**

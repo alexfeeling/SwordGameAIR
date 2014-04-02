@@ -7,6 +7,7 @@ package com.alex.ai
 	import com.alex.core.pool.IRecycle;
 	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.util.IdMachine;
+	import flash.utils.Dictionary;
 	/**
 	 * 电子大脑，用以思考，指挥操作
 	 * @author alex
@@ -15,6 +16,7 @@ package com.alex.ai
 	{
 		
 		private var _id:String;
+		private var _memory:Dictionary;
 		
 		public function ElectronicBrain() 
 		{
@@ -28,13 +30,19 @@ package com.alex.ai
 		public function init(body:IWorldUnit, type:int):void {
 			_id = IdMachine.getId(ElectronicBrain);
 			_body = body;
+			_memory = new Dictionary();
 			Commander.registerExecutor(this);
 		}
 		
 		private var _body:IWorldUnit;
 		
+		///智力等级
+		private var _levelOfIntelligence:int = 0;
+		///人生目的
 		private var _purpose:int = 0;
+		///当前行为
 		private var _currentBehaviour:int = 0;
+		///当前针对目标单位
 		private var _target:IWorldUnit;
 		
 		public function run(passedTime:Number):void {
@@ -52,7 +60,7 @@ package com.alex.ai
 					//break;
 			//}
 			switch(_purpose) {
-				case PurposeType.CLEAR:
+				case PurposeType.CLEAR://get target->close to target->(attack target || defense target attack)
 					switch(_currentBehaviour) {
 						case BehaviourType.ATTACK:
 							
@@ -88,38 +96,28 @@ package com.alex.ai
 		 */
 		private function analyseTarget():void {
 			if (_target == null) return;
-			var status:Object = { };
-			if (_target.physicsComponent.velocityX == 0) {
-				status.moveX = false;
-			} else {
-				status.moveX = true;
-				if (_body.position.globalX > _target.position.globalX && _target.physicsComponent.velocityX > 0)
-				{
-					status.closeMe = true;
-					status.xDir = "right";
-				} else if (_body.position.globalX < _target.position.globalX && _target.physicsComponent.velocityX < 0) 
-				{
-					status.closeMe = true;
-					status.xDir = "left";
-				} else status.closeMe = false;
-			}
-			if (_target.physicsComponent.velocityY == 0) {
-				status.moveY = false;
-				if (status.moveX == false) {
-					status.closeMe = false;
-				}
-			} else {
-				status.moveY = true;
-				if (_body.position.globalX > _target.position.globalX && _target.physicsComponent.velocityX > 0)					{
-					status.closeMe = true;
-				} else if (_body.position.globalX < _target.position.globalX && _target.physicsComponent.velocityX < 0) {
-					status.closeMe = true;
-				} else status.closeMe = false;
-				//if (status.closeMe) {
-					//
-				//}
-				
-			}
+			var targetStatus:Object = { closingMe:false, moveDirX:"none", moveDirY:"none", 
+										xClosingMe:false, yClosingMe:false, closeingMe:false };
+			if (_target.physicsComponent.velocityX > 0) targetStatus.moveDirX = "left";
+			else if (_target.physicsComponent.velocityX < 0) targetStatus.moveDirX = "right";
+			
+			if (_target.physicsComponent.velocityY > 0) targetStatus.moveDirY = "up";
+			else if (_target.physicsComponent.velocityY < 0) targetStatus.moveDirY = "down";
+			
+			if (_target.position.globalX < _body.position.globalX) targetStatus.dirFromMeX = "left";
+			else if (_target.position.globalX > _body.position.globalX) targetStatus.dirFromMeX = "right";
+			
+			if (_target.position.globalY < _body.position.globalY) targetStatus.dirFromMeY = "up";
+			else if (_target.position.globalY > _body.position.globalY) targetStatus.dirFromMeY = "down";
+			
+			targetStatus.xClosingMe = (targetStatus.dirFromMeX == "left" && targetStatus.moveDirX == "right") ||
+									(targetStatus.dirFromMeX == "right" && targetStatus.moveDirX == "left");
+			targetStatus.yClosingMe = (targetStatus.dirFromMeY == "up" && targetStatus.moveDirY == "down") ||
+									(targetStatus.dirFromMeY == "down" && targetStatus.moveDirY == "up");
+			targetStatus.closeingMe = (targetStatus.xClosingMe && (targetStatus.yClosingMe || targetStatus.moveDirX == "none")) ||
+									(targetStatus.yClosingMe && targetStatus.moveDirY == "none");
+			
+			//_target
 		}
 		
 		/* INTERFACE com.alex.core.commander.IOrderExecutor */
@@ -158,6 +156,7 @@ package com.alex.ai
 			_body = null;
 			_purpose = 0;
 			_currentBehaviour = 0;
+			_memory = null;
 			Commander.cancelExecutor(this);
 			_isRelease = true;
 		}
@@ -184,9 +183,14 @@ package com.alex.ai
 	 * 行为
 	 */
 	class Behaviour {
+		public var purpose:int = 0;
+		///类型 
 		public var type:int = 0;
 		public var target:IWorldUnit;
+		///进度 //1.get target->2.close to target->(3.attack target <-> 4.defense target attack)
+		public var progress:int;
 		
+		public var targetStatus:Object;
 		
 	}
 	
@@ -197,6 +201,9 @@ package com.alex.ai
 		public static const ATTACK:int = 3;
 	}
 	
+	/**
+	 * 人生的所有目的
+	 */
 	class PurposeType {
 		
 		///等待命令
@@ -213,17 +220,18 @@ package com.alex.ai
 	}
 	
 	/**
-	 * 大脑命令常量
+	 * 性格
 	 */
-	class BrainOrder {
+	class DispositionType {
 		
-		public static const START_MOVE:String = "brain_order_start_move";
-		public static const STOP_MOVE:String = "brain_order_stop_move";
-		public static const FORCE_STOP_MOVE:String = "brain_order_force_stop_move";
-		public static const SEARCH_TARGET:String = "brain_order_search_target";
-		public static const GOT_TARGET:String = "brain_order_got_target";
-		public static const USE_SKILL:String = "brain_order_use_skill";
-		public static const BE_ATTACKED:String = "brain_order_be_attacked";
+		///勇敢
+		public static const BRAVE:int = 0;
+		
+		///怯弱
+		public static const TIMID:int = 1;
+		
 	}
+	
 }
+
 
