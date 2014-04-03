@@ -25,12 +25,13 @@ package com.alex.skill
 		
 		///最大作用目标个数
 		public var maxImpactNum:int = 1;
+		public var needLife:int = 0;
+		public var needEnergy:int = 0;
 		
 		private var _currentFrame:int = 0;
 		private var _maxFrame:int = 10;
 		private var _frameDataList:Vector.<SkillFrameData>;
 		private var _attackableUnit:AttackableUnit;
-		
 		
 		private var _fps:int = 60;
 		private var _fTime:Number = 0;

@@ -119,6 +119,26 @@ package com.alex.core.component
 		{
 			_energy = Math.min(_maxEnergy, Math.max(0, value));
 		}
+		
+		/**
+		 * 是否满足消耗
+		 * @param	needLife
+		 * @param	needEnergy
+		 * @return
+		 */
+		public function satisfy(needLife:int, needEnergy:int):Boolean {
+			return needLife <= _life && needEnergy <= _energy;
+		}
+		
+		/**
+		 * 消耗
+		 * @param	cLife
+		 * @param	cEnergy
+		 */
+		public function consume(cLife:int, cEnergy:int):void {
+			_life = Math.max(0, _life - cLife);
+			_energy = Math.max(0, _energy - cEnergy);
+		}
 	
 	}
 

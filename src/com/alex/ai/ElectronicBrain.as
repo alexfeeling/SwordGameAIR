@@ -7,6 +7,7 @@ package com.alex.ai
 	import com.alex.core.pool.IRecycle;
 	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.util.IdMachine;
+	import com.alex.skill.SkillOperator;
 	import flash.utils.Dictionary;
 	/**
 	 * 电子大脑，用以思考，指挥操作
@@ -46,31 +47,25 @@ package com.alex.ai
 		private var _target:IWorldUnit;
 		
 		public function run(passedTime:Number):void {
-			//switch(_currentBehaviour) {
-				//case BehaviourType.STAND:
-					//
-					//break;
-				//case BehaviourType.CLOSE_TO:
-					//if (_target) {
-						//closeToTarget();
-					//} else {
-						//_body.executeOrder("brain_order_search_target");
-						//_currentBehaviour = BehaviourType.STAND;
-					//}
-					//break;
-			//}
 			switch(_purpose) {
 				case PurposeType.CLEAR://get target->close to target->(attack target || defense target attack)
 					switch(_currentBehaviour) {
 						case BehaviourType.ATTACK:
-							
+							var targetStatus:Object = analyseTarget();
+							if (targetStatus.fightStatus == 0) {//stand
+								attackTarget(targetStatus);
+							} else if (targetStatus.fightStatus == 1) {//defence
+								attackTarget(targetStatus);
+							} else if (targetStatus.fightStatus == 2) {//attack
+								defence(targetStatus);
+							}
 							break;
 						case BehaviourType.STAND:
 							
 							break;
 					}
 					break;
-				case PurposeType.SAUNTER:
+				case PurposeType.FREE:
 					
 					break;
 			}
@@ -94,7 +89,7 @@ package com.alex.ai
 		/**
 		 * 分析目标状态
 		 */
-		private function analyseTarget():void {
+		private function analyseTarget():Object {
 			if (_target == null) return;
 			var targetStatus:Object = { closingMe:false, moveDirX:"none", moveDirY:"none", 
 										xClosingMe:false, yClosingMe:false, closeingMe:false };
@@ -117,7 +112,8 @@ package com.alex.ai
 			targetStatus.closeingMe = (targetStatus.xClosingMe && (targetStatus.yClosingMe || targetStatus.moveDirX == "none")) ||
 									(targetStatus.yClosingMe && targetStatus.moveDirY == "none");
 			
-			//_target
+			_target.distanceFromMe = Math.abs(_target.position.globalX - _body.position.globalX);
+			return targetStatus;
 		}
 		
 		/* INTERFACE com.alex.core.commander.IOrderExecutor */
@@ -130,7 +126,7 @@ package com.alex.ai
 				];
 		}
 		
-		
+		private var _phase:int = 0;//0:nothing, 1:thinking, 2:doing
 		public function executeOrder(orderName:String, orderParam:Object = null):void 
 		{
 			switch(orderName) {
@@ -173,7 +169,23 @@ package com.alex.ai
 		 * 身体状态：正常，僵直，倒地
 		 * 位置状态：地面，空中，站立其它单位之上
 		 */
-		private function attackTarget():void {
+		private function attackTarget(targetStatus:Object):void {
+			
+		}
+		
+		private var _allSkillDic:Dictionary;
+		
+		private function attackDefenceTarget(targetStatus:Object):void {
+			var canUseSkill:Array = [];
+			for each(var skill:Object in _allSkillDic) {
+				if (skill.rangeOfHurt.x >= targetStatus.distanceFramMe) {
+					canUseSkill.push(skill);
+				}
+			}
+			
+		}
+		
+		private function defence(targetStatus:Object):void {
 			
 		}
 		
@@ -206,16 +218,16 @@ package com.alex.ai
 	 */
 	class PurposeType {
 		
-		///等待命令
+		///我一直在等候着一个命令
 		public static const WAIT:int = 0;
-		///闲逛
-		public static const SAUNTER:int = 1;
-		///保护，守卫
+		///我要自由自在的活在这个世界里
+		public static const FREE:int = 1;
+		///保护某人某物，守卫某个地方
 		public static const PROTECT:int = 2;
-		///清除敌人
+		///我生来的目的就是为了清除敌人
 		public static const CLEAR:int = 3;
-		///逃跑
-		public static const ESCAPE:int = 4;
+		///我只愿能苟活在这个尘世中
+		public static const SURVIVAL:int = 4;
 		
 	}
 	

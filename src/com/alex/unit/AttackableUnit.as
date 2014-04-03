@@ -74,8 +74,8 @@ package com.alex.unit
 				SkillFrameData.make().initByObj( { type:"end" } ) ];
 
 			_allSkillDic["南剑诀"] = new <SkillFrameData>[null, null, null, 
-				SkillFrameData.make().initByObj({ type:"distance", distanceId:"d1", speed:40, weight:10, lifeHurt:30, xImpact: 50, zImpact:20 }), null, null, 
-				SkillFrameData.make().initByObj({ type:"distance", distanceId:"d1", speed:30, weight:10, lifeHurt:30, xImpact: -100, zImpact: -40 }), null, null, 
+				SkillFrameData.make().initByObj( { type:"distance", distanceId:"d1", speed:40, weight:10, lifeHurt:30, xImpact: 50, zImpact:20 } ), null, null, 
+				SkillFrameData.make().initByObj( { type:"distance", distanceId:"d1", speed:30, weight:10, lifeHurt:30, xImpact: -100, zImpact: -40 } ), null, null, 
 				SkillFrameData.make().initByObj( { type:"end" } ) ];
 			
 			_allSkillDic["升"] = new <SkillFrameData>[null, null, 
@@ -115,6 +115,12 @@ package com.alex.unit
 			_currentSkillOperator = new SkillOperator(this, _allSkillDic[vSkillName]);
 			//无此技能
 			if (!_currentSkillOperator) return;
+			if (!_attributeComponent.satisfy(_currentSkillOperator.needLife, _currentSkillOperator.needEnergy)) {
+				//需要消耗不足
+				_currentSkillOperator = null;
+			}
+			//释放失败
+			if (!_currentSkillOperator) return;
 				
 			_attackCube = _currentSkillOperator.getAttackCube();
 			for each (var target:AttackableUnit in searchTarget(_currentSkillOperator.maxImpactNum))
@@ -127,10 +133,7 @@ package com.alex.unit
 		
 		public function receiveAttackNotice(vAttacker:AttackableUnit):void
 		{
-			if (this._isDying)
-			{
-				return;
-			}
+			if (this._isDying) return;
 			if (this._physicsComponent.faceDirection == this._position.compareX(vAttacker.position))
 			{
 				//攻击者在我面对的方向
@@ -232,10 +235,11 @@ package com.alex.unit
 				_catchingUnit.physicsComponent.isBeingCatched = false;
 				_catchingUnit = null;
 			}
-			if (attackCube)
-				this._attackCube = attackCube;
+			if (attackCube) this._attackCube = attackCube;
+			
 			for each (var target:AttackableUnit in searchTarget(_currentSkillOperator.maxImpactNum))
 			{
+				_attributeComponent.consume(int(frameData.needLife), int(frameData.needEnergy));
 				target.receiveAttackHurt(this, frameData);
 			}
 		}
