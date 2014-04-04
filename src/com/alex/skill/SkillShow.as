@@ -26,18 +26,18 @@ package com.alex.skill
 		
 		private var _lifeTime:Number = 0;
 		
-		private var _skillData:SkillOperator;
+		private var _skillData:SkillData;
 		
 		private var _name:String;
 		
-		private var _frameData:SkillFrameData;
+		private var _frameData:Object;
 		
 		public function SkillShow()
 		{
 		
 		}
 		
-		protected function init(vName:String, vOwnner:AttackableUnit, vPosition:Position, vDir:int, frameData:SkillFrameData):SkillShow
+		protected function init(vName:String, vOwnner:AttackableUnit, vPosition:Position, vDir:int, frameData:Object):SkillShow
 		{
 			refresh(IdMachine.getId(SkillShow), vPosition, PhysicsComponent.make(this, vPosition, frameData.speed, 50, 50, 50, 10, PhysicsType.BUBBLE));
 			_name = vName;
@@ -48,7 +48,7 @@ package com.alex.skill
 			return this;
 		}
 		
-		public static function make(vName:String, vOwnner:AttackableUnit, vPosition:Position, vDir:int, frameData:SkillFrameData):SkillShow
+		public static function make(vName:String, vOwnner:AttackableUnit, vPosition:Position, vDir:int, frameData:Object):SkillShow
 		{
 			return SkillShow(InstancePool.getInstance(SkillShow)).init(vName, vOwnner, vPosition, vDir, frameData);
 		}
@@ -74,7 +74,6 @@ package com.alex.skill
 		override public function collide(unit:IWorldUnit, moveDir:int):void
 		{
 			if (unit == null) return;
-			//unit.physicsComponent.forceImpact(MoveDirection.Z_TOP, this.getHitEnergy());
 			if (unit is IAttackable)
 				(unit as IAttackable).receiveAttackHurt(this.ownner, _frameData);
 			this.release();
@@ -88,7 +87,7 @@ package com.alex.skill
 		/* INTERFACE com.alex.display.IDisplay */
 		override public function refreshZ():void
 		{
-		
+			
 		}
 		
 		override public function release():void

@@ -22,7 +22,8 @@ package
 			stage.align = StageAlign.TOP_LEFT;
 			//stage.displayState = StageDisplayState.FULL_SCREEN;
 			//fscommand("trapallkeys","true");
-
+			
+			
 			this.addChild(new Game());
 			///显示fps工具类
 			var stats:Stats = new Stats();

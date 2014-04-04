@@ -21,6 +21,9 @@ package com.alex.skill
 		public var speed:int=0;
 		public var weight:int=0;
 		
+		public var needLife:int = 0;
+		public var needEnergy:int = 0;
+		
 		public var lifeHurt:int=0;
 		public var xImpact:int=0;
 		public var yImpact:int=0;

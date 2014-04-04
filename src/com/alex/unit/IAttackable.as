@@ -1,8 +1,6 @@
 package com.alex.unit 
 {
 	
-	import com.alex.skill.SkillFrameData
-	
 	/**
 	 * ...
 	 * @author alex
@@ -17,7 +15,7 @@ package com.alex.unit
 		 * @param	vAttacker 攻击者
 		 * @param	vSkillData 技能数据
 		 */
-		function receiveAttackHurt(attacker:AttackableUnit, frameData:SkillFrameData):void;
+		function receiveAttackHurt(attacker:AttackableUnit, frameData:Object):void;
 		
 	}
 	

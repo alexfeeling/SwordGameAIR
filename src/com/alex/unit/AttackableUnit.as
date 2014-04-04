@@ -5,15 +5,17 @@ package com.alex.unit
 	import com.alex.constant.OrderConst;
 	import com.alex.core.animation.AnimationManager;
 	import com.alex.core.animation.AttributeAnimation;
+	import com.alex.core.commander.Commander;
 	import com.alex.core.component.AttributeComponent;
 	import com.alex.core.component.MoveDirection;
 	import com.alex.core.component.PhysicsType;
+	import com.alex.core.component.Position;
 	import com.alex.core.unit.IAttributeUnit;
 	import com.alex.core.unit.IWorldUnit;
 	import com.alex.core.util.Cube;
 	import com.alex.core.world.World;
-	import com.alex.skill.SkillFrameData;
-	import com.alex.skill.SkillOperator;
+	import com.alex.skill.SkillData;
+	import com.alex.skill.SkillShow;
 	import com.alex.unit.BaseUnit;
 	import flash.display.DisplayObject;
 	import flash.display.Shape;
@@ -41,7 +43,7 @@ package com.alex.unit
 		private var _rangeOfVision:Rectangle;
 		
 		///当前技能运作对象
-		private var _currentSkillOperator:SkillOperator;
+		private var _currSkillData:SkillData;
 		
 		///本单位掌握的技能
 		private var _allSkillDic:Dictionary;
@@ -68,38 +70,38 @@ package com.alex.unit
 		{
 			this._attributeComponent = attributeComponent;
 			_allSkillDic = new Dictionary();
-			_allSkillDic["刺"] = new <SkillFrameData>[null, null, null, 
-				SkillFrameData.make().initByObj({ type:"hurt", lifeHurt:50, xImpact: -30, zImpact:40 }), null, null, 
-				SkillFrameData.make().initByObj({ type:"hurt", lifeHurt:50, xImpact:100, yImpact:50, zImpact: -40 }), null, null, 
-				SkillFrameData.make().initByObj( { type:"end" } ) ];
+			_allSkillDic["刺"] = new SkillData({name:"刺"}, [null, null, null, 
+				{ type:"hurt", lifeHurt:50, xImpact: -30, zImpact:40 }, null, null, 
+				{ type:"hurt", lifeHurt:50, xImpact:100, yImpact:50, zImpact: -40 }, null, null, 
+				{ type:"end" } ]);
 
-			_allSkillDic["南剑诀"] = new <SkillFrameData>[null, null, null, 
-				SkillFrameData.make().initByObj( { type:"distance", distanceId:"d1", speed:40, weight:10, lifeHurt:30, xImpact: 50, zImpact:20 } ), null, null, 
-				SkillFrameData.make().initByObj( { type:"distance", distanceId:"d1", speed:30, weight:10, lifeHurt:30, xImpact: -100, zImpact: -40 } ), null, null, 
-				SkillFrameData.make().initByObj( { type:"end" } ) ];
+			_allSkillDic["南剑诀"] =new SkillData({name:"南剑诀"}, [null, null, null, 
+				{ type:"distance", distanceId:"d1", speed:40, weight:10, lifeHurt:30, xImpact: 50, zImpact:20 }, null, null, 
+				{ type:"distance", distanceId:"d1", speed:30, weight:10, lifeHurt:30, xImpact: -100, zImpact: -40 }, null, null, 
+				{ type:"end" } ]);
 			
-			_allSkillDic["升"] = new <SkillFrameData>[null, null, 
+			_allSkillDic["升"] = new SkillData({name:"升"}, [null, null, 
 				//{type:"catch", elevation:20}, null,null,
-				SkillFrameData.make().initByObj( { type:"catch", catchZ:50, catchX:50 } ), null,
+				{ type:"catch", catchZ:50, catchX:50 }, null,
 				//{type:"catch", elevation:60, x:40 }, //null,null,
 				//{type:"catch", elevation:70, x:30 }, //null,null,
-				SkillFrameData.make().initByObj( { type:"catch", catchZ:80, catchX:0 } ), null,
+				{ type:"catch", catchZ:80, catchX:0 }, null,
 				//{type:"catch", elevation:70, x:-40 }, //null,null,
-				SkillFrameData.make().initByObj( { type:"catch", catchZ:50, catchX: -50 } ), null,
+				{ type:"catch", catchZ:50, catchX: -50 }, null,
 				//{type:"catch", elevation:30, x:-80 },  //null,null,
-				SkillFrameData.make().initByObj( { type:"catch", catchZ:0, catchX: -100 } ), null,
+				{ type:"catch", catchZ:0, catchX: -100 }, null,
 				//{type:"catch", elevation:30, x: -80 },  //null,null,
-				SkillFrameData.make().initByObj( { type:"catch", catchZ:50, catchX: -50 } ), null,
+				{ type:"catch", catchZ:50, catchX: -50 }, null,
 				//{type:"catch", elevation:70, x: -40 }, //null,null,
-				SkillFrameData.make().initByObj( { type:"catch", catchZ:80, catchX:0 } ), null,
-				SkillFrameData.make().initByObj( { type:"hurt_catch", lifeHurt:50, xImpact:100, zImpact: -40, releaseCatch:true } ), null, 
-				SkillFrameData.make().initByObj( { type:"end" } ) ];
+				{ type:"catch", catchZ:80, catchX:0 }, null,
+				{ type:"hurt_catch", lifeHurt:50, xImpact:100, zImpact: -40, releaseCatch:true }, null, 
+				{ type:"end" } ]);
 				
-			_allSkillDic["穿心"] = new <SkillFrameData>[
-				SkillFrameData.make().initByObj( { type:"lockTarget" } ), null, null, null, 
-				SkillFrameData.make().initByObj( { type:"hurt_target" } ), null,
-				SkillFrameData.make().initByObj( { type:"end" } )];
-				
+			_allSkillDic["穿心"] = new SkillData( { name:"穿心" }, [
+				{ type:"lockTarget" }, null, null, null, 
+				{ type:"hurt_target" }, null,
+				{ type:"end" } ]);
+			
 			_brain = ElectronicBrain.make();
 		}
 		
@@ -110,20 +112,21 @@ package com.alex.unit
 		public function startAttack(vSkillName:String):void
 		{
 			//trace(vSkillName);
-			if (this._isDying || _currentSkillOperator) return;
+			if (this._isDying || _currSkillData) return;
 			
-			_currentSkillOperator = new SkillOperator(this, _allSkillDic[vSkillName]);
+			_currSkillData = _allSkillDic[vSkillName] as SkillData;
+			
 			//无此技能
-			if (!_currentSkillOperator) return;
-			if (!_attributeComponent.satisfy(_currentSkillOperator.needLife, _currentSkillOperator.needEnergy)) {
+			if (!_currSkillData) return;
+			if (!_attributeComponent.satisfy(_currSkillData.needLife, _currSkillData.needEnergy)) {
 				//需要消耗不足
-				_currentSkillOperator = null;
+				_currSkillData = null;
 			}
 			//释放失败
-			if (!_currentSkillOperator) return;
-				
-			_attackCube = _currentSkillOperator.getAttackCube();
-			for each (var target:AttackableUnit in searchTarget(_currentSkillOperator.maxImpactNum))
+			if (!_currSkillData) return;
+			
+			_attackCube = getAttackCube();
+			for each (var target:AttackableUnit in searchTarget(_currSkillData.maxImpactNum))
 			{
 				target.receiveAttackNotice(this);
 			}
@@ -147,7 +150,7 @@ package com.alex.unit
 		 * @param	attacker 攻击者
 		 * @param	hurtObj 技能数据
 		 */
-		public function receiveAttackHurt(attacker:AttackableUnit, frameData:SkillFrameData):void
+		public function receiveAttackHurt(attacker:AttackableUnit, frameData:Object):void
 		{
 			if (!this._isDying && frameData.lifeHurt)
 			{
@@ -229,7 +232,7 @@ package com.alex.unit
 		 * @param	hurtObj
 		 * @param	attackCube
 		 */
-		public function attackHurt(frameData:SkillFrameData, attackCube:Cube = null):void
+		public function attackHurt(frameData:Object, attackCube:Cube = null):void
 		{
 			if (_catchingUnit) {
 				_catchingUnit.physicsComponent.isBeingCatched = false;
@@ -237,7 +240,7 @@ package com.alex.unit
 			}
 			if (attackCube) this._attackCube = attackCube;
 			
-			for each (var target:AttackableUnit in searchTarget(_currentSkillOperator.maxImpactNum))
+			for each (var target:AttackableUnit in searchTarget(_currSkillData.maxImpactNum))
 			{
 				_attributeComponent.consume(int(frameData.needLife), int(frameData.needEnergy));
 				target.receiveAttackHurt(this, frameData);
@@ -253,7 +256,7 @@ package com.alex.unit
 			_lockingTarget = searchTarget(1)[0];
 		}
 		
-		public function hurtLockingTarget(frameData:SkillFrameData):void {
+		public function hurtLockingTarget(frameData:Object):void {
 			if (_lockingTarget) {
 				_lockingTarget.receiveAttackHurt(this, frameData);
 			}
@@ -263,7 +266,7 @@ package com.alex.unit
 		 * 作用伤害到正抓举的单位
 		 * @param	hurtObj
 		 */
-		public function attackHurtCatch(frameData:SkillFrameData):void {
+		public function attackHurtCatch(frameData:Object):void {
 			if (_catchingUnit) {
 				_catchingUnit.receiveAttackHurt(this, frameData);
 				if (frameData.releaseCatch) {
@@ -279,7 +282,10 @@ package com.alex.unit
 		public function attackEnd():void
 		{
 			this._attackCube = null;
-			this._currentSkillOperator = null;
+			if (this._currSkillData) {
+				this._currSkillData.refresh();
+				this._currSkillData = null;
+			}
 			if (this._catchingUnit) {
 				this.releaseCatch();
 			}
@@ -291,7 +297,7 @@ package com.alex.unit
 		 * @param	attackCube
 		 * @return
 		 */
-		public function catchAndFollow(frameData:SkillFrameData, attackCube:Cube):Boolean {
+		public function catchAndFollow(frameData:Object, attackCube:Cube):Boolean {
 			if (attackCube)
 				this._attackCube = attackCube;
 			
@@ -328,7 +334,7 @@ package com.alex.unit
 		{
 			super.release();
 			this._attackCube = null;
-			this._currentSkillOperator = null;
+			this._currSkillData = null;
 			this._rangeOfVision = null;
 			this._isDying = false;
 			this._allSkillDic = null;
@@ -377,10 +383,61 @@ package com.alex.unit
 		override public function gotoNextFrame(passedTime:Number):void 
 		{
 			super.gotoNextFrame(passedTime);
-			if (this._currentSkillOperator) 
+			if (this._currSkillData) 
 			{
-				this._currentSkillOperator.run(passedTime);
+				var frameData:Object = _currSkillData.readFrameData();
+				if (frameData)
+				{
+					switch(frameData.type)
+					{
+						case "hurt"://普通伤害
+							this.attackHurt(frameData, getAttackCube());
+							break;
+						case "distance"://释放远程招式
+							if (frameData.distanceId == null) break;
+							var sPosition:Position = this.position.copy();
+							var skill:SkillShow = SkillShow.make(frameData.distanceId, this, sPosition, 
+								this.physicsComponent.faceDirection == 1 ? MoveDirection.X_RIGHT : MoveDirection.X_LEFT, frameData);
+							Commander.sendOrder(World.ADD_ITEM_TO_WORLD, skill);
+							break;
+						case "lockTarget"://锁定目标
+							this.lockTarget(getAttackCube());
+							break;
+						case "hurt_target"://攻击锁定目标
+							this.hurtLockingTarget(frameData);
+							break;
+						case "catch"://抓举单位
+							var catched:Boolean = this.catchAndFollow(frameData, getAttackCube());
+							if (!catched) this.attackEnd();
+							break;
+						case "hurt_catch"://伤害作用抓举单位
+							this.attackHurtCatch(frameData);
+							break;
+						case "release_catch"://释放抓举单位
+							this.releaseCatch();
+							break;
+						case "end"://攻击结束
+							this.attackEnd();
+							return;
+					}
+					if (frameData.releaseCatch) {
+						this.releaseCatch();
+					}
+				}
 			}
+		}
+		
+		public function getAttackCube():Cube
+		{
+			if (!_attackCube) _attackCube = new Cube();
+			if (physicsComponent.faceDirection == 1) {
+				_attackCube.refresh(position.globalX + 40, position.globalY - 30, 
+					position.z, 80, 60, 80);
+			} else {
+				_attackCube.refresh(position.globalX -80- 40, position.globalY - 30, 
+					position.z, 80, 60, 80);
+			}
+			return _attackCube;
 		}
 	
 	}
