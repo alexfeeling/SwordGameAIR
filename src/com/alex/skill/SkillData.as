@@ -41,15 +41,14 @@ package com.alex.skill
 				if (skillData.needLife is Number) needLife = int(skillData.needLife);
 				if (skillData.needEnergy is Number) needEnergy = int(skillData.needEnergy);
 				if (skillData.maxImpactNum is Number) maxImpactNum = int(skillData.maxImpactNum);
-				
-				_currentFrame = 0;
-				_maxFrame = _frameDataList.length;
 			}
 			if (frameDataList) {
 				_frameDataList = frameDataList;
 			} else {
 				_frameDataList = [ { type:"end" } ];
 			}
+			_currentFrame = 0;
+			_maxFrame = _frameDataList.length;
 		}
 		
 		public function refresh():void {

@@ -20,6 +20,9 @@ package com.alex.ai
 		public static const USE_SKILL:String = "brain_order_use_skill";
 		public static const BE_ATTACKED:String = "brain_order_be_attacked";
 		
+		public static const PLAN_MOVE_X_FINISH:String = "plan_move_x_finish";
+		public static const PLAN_MOVE_Y_FINISH:String = "plan_move_y_finish";
+		
 	}
 
 }

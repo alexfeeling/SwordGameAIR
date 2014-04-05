@@ -53,39 +53,70 @@ package com.alex.ai
 		
 		public function run(passedTime:Number):void
 		{
-			//if (_memory["phase"] == "nothing") return;
+			if (_memory["phase"] == "nothing" || _memory["phase"] == "doing") return;
 			//if (_memory["phase"] == "thinking")
-			//switch (_memory["purpose"])
-			//{
-				//case PurposeType.CLEAR: //get target->close to target->(attack target || defense target attack)
+			switch (_memory["purpose"])
+			{
+				case PurposeType.CLEAR: //get target->close to target->(attack target || defense target attack)
 					//清除敌人
 					//switch (_currentBehaviour)
-					//switch (_memory["currentBehaviour"])
-					//{
-						//case BehaviourType.ATTACK: 
-							//var targetStatus:Object = analyseTarget();
-							//if (targetStatus.fightStatus == 0)
-							//{ //stand
-								//attackStandTarget(targetStatus);
-							//}
-							//else if (targetStatus.fightStatus == 1)
-							//{ //defence
-								//attackDefenceTarget(targetStatus);
-							//}
-							//else if (targetStatus.fightStatus == 2)
-							//{ //attack
-								//defence(targetStatus);
-							//}
-							//break;
-						//case BehaviourType.STAND:
-							//
-							//break;
-					//}
-					//break;
-				//case PurposeType.FREE:
-					//
-					//break;
-			//}
+					switch (_memory["currentBehaviour"])
+					{
+						case BehaviourType.CLOSE_TO:
+							if (!_body.physicsComponent.isStandOnSomething()) break;
+							targetStatus = analyseTarget();
+							//先判断X轴位置有没相交，有相交就先X轴反方向跑开
+							//X轴位置不相交后，判断Y轴距离是否够近，不够近就Y轴接近
+							//X轴位置不相交，Y轴够接近后判断X轴方向是否够近，不够则X轴接近
+							//X轴位置够接近，Y轴位置够接近后靠近完成，准备下一步操作
+							if (targetStatus.distanceFromMe < 0) {//X轴位置相交
+								_body.physicsComponent.stopMove(MoveDirection.Y_DOWN);
+								_body.physicsComponent.stopMove(MoveDirection.Y_UP);
+								//要反方向移动
+								if (targetStatus.dirFromMeX == "left" && targetStatus.moveDirX != "right") {
+									_body.physicsComponent.startPlanMove(MoveDirection.X_RIGHT, -targetStatus.distanceFromMe);
+								} else if (targetStatus.moveDirX != "left") {
+									_body.physicsComponent.startMove(MoveDirection.X_LEFT, -targetStatus.distanceFromMe);
+								}
+							} else {
+								if (targetStatus.distanceY > 20) {//Y轴接近
+									
+								} else if (targetStatus.distanceFromMe > targetStatus.miniAttackDistance) {
+									//X轴接近
+									
+								} else {//靠近完成，可以揍他了
+									_memory["currentBehaviour"] = BehaviourType.ATTACK;
+									_memory["phase"] = "thinking";
+									run(passedTime);
+									break;
+								}
+							}
+							_memory["phase"] = "doing";
+							break;
+						case BehaviourType.ATTACK: 
+							var targetStatus:Object = analyseTarget();
+							if (targetStatus.fightStatus == 0)
+							{ //stand
+								attackStandTarget(targetStatus);
+							}
+							else if (targetStatus.fightStatus == 1)
+							{ //defence
+								attackDefenceTarget(targetStatus);
+							}
+							else if (targetStatus.fightStatus == 2)
+							{ //attack
+								defence(targetStatus);
+							}
+							break;
+						case BehaviourType.STAND:
+							
+							break;
+					}
+					break;
+				case PurposeType.FREE:
+					
+					break;
+			}
 		}
 		
 		/**
@@ -107,6 +138,16 @@ package com.alex.ai
 		
 		/**
 		 * 分析目标状态
+		 * moveDirX
+		 * moveDirY
+		 * dirFromMeX
+		 * dirFromMeY
+		 * xClosingMe
+		 * yClosingMe
+		 * closeingMe
+		 * distanceFromMe
+		 * distanceY
+		 * miniAttackDistance
 		 */
 		private function analyseTarget():Object
 		{
@@ -137,7 +178,11 @@ package com.alex.ai
 			targetStatus.yClosingMe = (targetStatus.dirFromMeY == "up" && targetStatus.moveDirY == "down") || (targetStatus.dirFromMeY == "down" && targetStatus.moveDirY == "up");
 			targetStatus.closeingMe = (targetStatus.xClosingMe && (targetStatus.yClosingMe || targetStatus.moveDirX == "none")) || (targetStatus.yClosingMe && targetStatus.moveDirY == "none");
 			
-			targetStatus.distanceFromMe = Math.abs(_target.position.globalX - _body.position.globalX);
+			targetStatus.distanceFromMe = Math.abs(_target.position.globalX - _body.position.globalX) - ((_target.physicsComponent.width + _body.physicsComponent.width) >> 1);
+			targetStatus.distanceY = Math.abs(_target.position.globalY - _body.position.globalY);
+			//最大攻击距离
+			targetStatus.miniAttackDistance = 50;
+			
 			return targetStatus;
 		}
 		
@@ -168,6 +213,12 @@ package com.alex.ai
 					break;
 				case "brain_order_energy_update": //内力更新
 					
+					break;
+				case BrainOrder.PLAN_MOVE_X_FINISH:
+					_memory["phase"] = "thinking"
+					break;
+				case BrainOrder.PLAN_MOVE_Y_FINISH:
+					_memory["phase"] = "thinking"
 					break;
 			}
 		}
@@ -250,61 +301,34 @@ package com.alex.ai
 	}
 
 }
-//
-///**
- //* 行为
- //*/
-//class Behaviour
-//{
-	//public var purpose:int = 0;
+
+/**
+ * 行为
+ */
+class Behaviour
+{
+	public var purpose:int = 0;
 	///类型 
-	//public var type:int = 0;
+	public var type:int = 0;
 	//public var target:IWorldUnit;
 	///进度 //1.get target->2.close to target->(3.attack target <-> 4.defense target attack)
-	//public var progress:int;
-	//
-	//public var targetStatus:Object;
-//
-//}
-//
-//class BehaviourType
-//{
-	//public static const STAND:int = 0;
-	//public static const CLOSE_TO:int = 1;
-	//public static const DEFENCE:int = 2;
-	//public static const ATTACK:int = 3;
-//}
-//
-///**
- //* 人生的所有目的
- //*/
-//class PurposeType
-//{
-	//
-	///我一直在等候着一个命令
-	//public static const WAIT:int = 0;
-	///我要自由自在的活在这个世界里
-	//public static const FREE:int = 1;
-	///保护某人某物，守卫某个地方
-	//public static const PROTECT:int = 2;
-	///我生来的目的就是为了清除敌人
-	//public static const CLEAR:int = 3;
-	///我只愿能苟活在这个尘世中
-	//public static const SURVIVAL:int = 4;
-//
-//}
-//
-///**
- //* 性格
- //*/
-//class DispositionType
-//{
-	//
+	public var progress:int;
+	
+	public var targetStatus:Object;
+
+}
+
+/**
+ * 性格
+ */
+class DispositionType
+{
+	
 	///勇敢
-	//public static const BRAVE:int = 0;
-	//
+	public static const BRAVE:int = 0;
+	
 	///怯弱
-	//public static const TIMID:int = 1;
-//
-//}
+	public static const TIMID:int = 1;
+
+}
 

@@ -1,5 +1,7 @@
 package com.alex.core.component
 {
+	import com.alex.ai.BrainOrder;
+	import com.alex.ai.ElectronicBrain;
 	import com.alex.constant.OrderConst;
 	import com.alex.core.commander.Commander;
 	import com.alex.core.commander.IOrderExecutor;
@@ -30,6 +32,8 @@ package com.alex.core.component
 		
 		///显示对象，拥有本移动组件的对象
 		private var _displayObj:IWorldUnit;
+		/// 大脑
+		private var _brain:ElectronicBrain;
 		
 		private var _length:Number = 0;
 		private var _width:Number = 0;
@@ -120,6 +124,32 @@ package com.alex.core.component
 			Commander.registerExecutor(this);
 			
 			return this;
+		}
+		
+		public function setBrain(brain:ElectronicBrain):void {
+			_brain = brain;
+		}
+		
+		private var planDistanceX:int = 0;
+		private var planDistanceY:int = 0;
+		/**
+		 * 计划行走
+		 * @param	direction
+		 * @param	distance
+		 */
+		public function startPlanMove(direction:int, distance:int):void {
+			switch (direction)
+			{
+				case MoveDirection.X_LEFT: 
+				case MoveDirection.X_RIGHT: 
+					planDistanceX = distance;
+					break;
+				case MoveDirection.Y_UP: 
+				case MoveDirection.Y_DOWN:
+					planDistanceY = distance;
+					break;
+			}
+			startMove(direction);
 		}
 		
 		///开始移动
@@ -506,6 +536,14 @@ package com.alex.core.component
 				}
 				if (distance > 0)
 				{
+					if (planDistanceX > 0) {//有计划行走
+						distance = Math.min(distance, planDistanceX);
+						planDistanceX -= distance;
+						if (planDistanceX <= 0) {
+							this.stopMove(MoveDirection.X_RIGHT);
+							if (_brain) _brain.executeOrder(BrainOrder.PLAN_MOVE_X_FINISH);
+						}
+					}
 					this._displayObj.executeOrder(OrderConst.MAP_ITEM_MOVE, [MoveDirection.X_RIGHT, int(distance)]);
 				}
 			}
@@ -518,16 +556,24 @@ package com.alex.core.component
 				}
 				if (distance > 0)
 				{
+					if (planDistanceX > 0) {//有计划行走
+						distance = Math.min(distance, planDistanceX);
+						planDistanceX -= distance;
+						if (planDistanceX <= 0) {
+							this.stopMove(MoveDirection.X_LEFT);
+							if (_brain) _brain.executeOrder(BrainOrder.PLAN_MOVE_X_FINISH);
+						}
+					}
 					this._displayObj.executeOrder(OrderConst.MAP_ITEM_MOVE, [MoveDirection.X_LEFT, int(distance)]);
 				}
 			}
 			else
 			{
-				//性能测试代码
+				//============性能测试代码
 				if (this._displayObj is Tree)
 				{
-				this._xVelocity = (Math.random() - 0.5) * 50;
-				this._isSelfControl = false;
+					this._xVelocity = (Math.random() - 0.5) * 50;
+					this._isSelfControl = false;
 				}
 			}
 			if (this._isRelease)
@@ -570,6 +616,14 @@ package com.alex.core.component
 				}
 				if (distance > 0)
 				{
+					if (planDistanceY > 0) {//有计划行走
+						distance = Math.min(distance, planDistanceY);
+						planDistanceY -= distance;
+						if (planDistanceY <= 0) {
+							this.stopMove(MoveDirection.Y_UP);
+							if (_brain) _brain.executeOrder(BrainOrder.PLAN_MOVE_Y_FINISH);
+						}
+					}
 					this._displayObj.executeOrder(OrderConst.MAP_ITEM_MOVE, [MoveDirection.Y_DOWN, int(distance)]);
 				}
 			}
@@ -582,6 +636,14 @@ package com.alex.core.component
 				}
 				if (distance > 0)
 				{
+					if (planDistanceY > 0) {//有计划行走
+						distance = Math.min(distance, planDistanceY);
+						planDistanceY -= distance;
+						if (planDistanceY <= 0) {
+							this.stopMove(MoveDirection.Y_DOWN);
+							if (_brain) _brain.executeOrder(BrainOrder.PLAN_MOVE_Y_FINISH);
+						}
+					}
 					(this._displayObj as IOrderExecutor).executeOrder(OrderConst.MAP_ITEM_MOVE, [MoveDirection.Y_UP, int(distance)]);
 				}
 			}

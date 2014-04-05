@@ -1,0 +1,35 @@
+[
+{
+	name:"刺",
+	frameData:[	null, null, null, 
+				{ type:"hurt", lifeHurt:50, xImpact: -30, zImpact:40 }, null, null, 
+				{ type:"hurt", lifeHurt:50, xImpact:100, yImpact:50, zImpact: -40 }, null, null, 
+				{ type:"end" } ]
+},
+{
+	name:"南剑诀",
+	frameData:[	null, null, null, 
+				{ type:"distance", distanceId:"d1", speed:40, weight:10, lifeHurt:30, xImpact: 50, zImpact:20 }, null, null, 
+				{ type:"distance", distanceId:"d1", speed:30, weight:10, lifeHurt:30, xImpact: -100, zImpact: -40 }, null, null, 
+				{ type:"end" } ]
+},
+{
+	name:"升",
+	frameData:[	null, null, 
+				{ type:"catch", catchZ:50, catchX:50 }, null,
+				{ type:"catch", catchZ:80, catchX:0 }, null,
+				{ type:"catch", catchZ:50, catchX: -50 }, null,
+				{ type:"catch", catchZ:0, catchX: -100 }, null,
+				{ type:"catch", catchZ:50, catchX: -50 }, null,
+				{ type:"catch", catchZ:80, catchX:0 }, null,
+				{ type:"hurt_catch", lifeHurt:50, xImpact:100, zImpact: -40, releaseCatch:true }, null, 
+				{ type:"end" } ]
+},
+{
+	name:"穿心",
+	frameData:[
+				{ type:"lockTarget" }, null, null, null, 
+				{ type:"hurt_target" }, null,
+				{ type:"end" } ]
+}
+]

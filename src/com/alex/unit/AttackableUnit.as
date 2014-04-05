@@ -103,6 +103,7 @@ package com.alex.unit
 				{ type:"end" } ]);
 			
 			_brain = ElectronicBrain.make();
+			_physicsComponent.setBrain(_brain);
 		}
 		
 		/**
@@ -374,6 +375,9 @@ package com.alex.unit
 					break;
 				case "brain_order_use_skill":
 					startAttack(String(orderParam));
+					break;
+				case "brain_order_move_to_pointed_x":
+					//physicsComponent.startPlanMove(
 					break;
 				default: 
 					super.executeOrder(orderName, orderParam);
