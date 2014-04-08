@@ -140,7 +140,7 @@ package com.alex.core.world
 			//var newMapBlock:MapBlock = MapBlock.make(newBlockX, newBlockY);
 			
 			//this.addMapBlock(newMapBlock);
-			
+			if (newBlockX != 0 || newBlockY != 0) return;
 			for (var i:int = 1; i < mapDataList.length; i++)
 			{
 				var mapGridObj:Object = mapDataList[i];

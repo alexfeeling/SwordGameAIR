@@ -37,6 +37,9 @@ package com.alex.ai
 			_id = IdMachine.getId(ElectronicBrain);
 			_body = body;
 			_memory = new Dictionary();
+			_memory["phase"] = "thinking";
+			_memory["purpose"] = PurposeType.CLEAR;
+			_memory["behaviour"] = BehaviourType.CLOSE_TO;
 			Commander.registerExecutor(this);
 		}
 		
@@ -47,24 +50,24 @@ package com.alex.ai
 		///人生目的
 		private var _purpose:int = 0;
 		///当前行为
-		private var _currentBehaviour:int = 0;
+		private var _behaviour:int = 0;
 		///当前针对目标单位
 		private var _target:IWorldUnit;
 		
 		public function run(passedTime:Number):void
 		{
 			if (_memory["phase"] == "nothing" || _memory["phase"] == "doing") return;
-			//if (_memory["phase"] == "thinking")
 			switch (_memory["purpose"])
 			{
 				case PurposeType.CLEAR: //get target->close to target->(attack target || defense target attack)
 					//清除敌人
-					//switch (_currentBehaviour)
-					switch (_memory["currentBehaviour"])
+					//switch (_behaviour)
+					switch (_memory["behaviour"])
 					{
 						case BehaviourType.CLOSE_TO:
 							if (!_body.physicsComponent.isStandOnSomething()) break;
 							targetStatus = analyseTarget();
+							if (targetStatus == null) break;
 							//先判断X轴位置有没相交，有相交就先X轴反方向跑开
 							//X轴位置不相交后，判断Y轴距离是否够近，不够近就Y轴接近
 							//X轴位置不相交，Y轴够接近后判断X轴方向是否够近，不够则X轴接近
@@ -74,26 +77,35 @@ package com.alex.ai
 								_body.physicsComponent.stopMove(MoveDirection.Y_UP);
 								//要反方向移动
 								if (targetStatus.dirFromMeX == "left" && targetStatus.moveDirX != "right") {
-									_body.physicsComponent.startPlanMove(MoveDirection.X_RIGHT, -targetStatus.distanceFromMe);
+									_body.physicsComponent.startPlanMove(MoveDirection.X_RIGHT , targetStatus.distanceFromMe);
 								} else if (targetStatus.moveDirX != "left") {
-									_body.physicsComponent.startMove(MoveDirection.X_LEFT, -targetStatus.distanceFromMe);
+									_body.physicsComponent.startPlanMove(MoveDirection.X_LEFT, targetStatus.distanceFromMe);
 								}
 							} else {
 								if (targetStatus.distanceY > 20) {//Y轴接近
-									
+									if (targetStatus.dirFromMeY == "up" && targetStatus.moveDirY != "up") {
+										_body.physicsComponent.startPlanMove(MoveDirection.Y_UP, targetStatus.distanceY);
+									} else if (targetStatus.moveDirX != "down") {
+										_body.physicsComponent.startPlanMove(MoveDirection.Y_DOWN, targetStatus.distanceY);
+									}
 								} else if (targetStatus.distanceFromMe > targetStatus.miniAttackDistance) {
 									//X轴接近
-									
+									if (targetStatus.dirFromMeX == "left" && targetStatus.moveDirX != "left") {
+										_body.physicsComponent.startPlanMove(MoveDirection.X_LEFT , targetStatus.distanceFromMe);
+									} else if (targetStatus.moveDirX != "right") {
+										_body.physicsComponent.startPlanMove(MoveDirection.X_RIGHT, targetStatus.distanceFromMe);
+									}
 								} else {//靠近完成，可以揍他了
-									_memory["currentBehaviour"] = BehaviourType.ATTACK;
+									_memory["behaviour"] = BehaviourType.ATTACK;
 									_memory["phase"] = "thinking";
-									run(passedTime);
+									//run(passedTime);
 									break;
 								}
 							}
 							_memory["phase"] = "doing";
 							break;
 						case BehaviourType.ATTACK: 
+							trace("ready attack");
 							var targetStatus:Object = analyseTarget();
 							if (targetStatus.fightStatus == 0)
 							{ //stand
@@ -153,7 +165,7 @@ package com.alex.ai
 		{
 			if (_target == null)
 				return null;
-			var targetStatus:Object = {closingMe: false, moveDirX: "none", moveDirY: "none", xClosingMe: false, yClosingMe: false, closeingMe: false};
+			var targetStatus:Object = { closingMe: false, moveDirX: "none", moveDirY: "none", xClosingMe: false, yClosingMe: false, closeingMe: false };
 			if (_target.physicsComponent.velocityX > 0)
 				targetStatus.moveDirX = "left";
 			else if (_target.physicsComponent.velocityX < 0)
@@ -191,8 +203,6 @@ package com.alex.ai
 		public function getExecuteOrderList():Array
 		{
 			return [
-				//BrainOrder.GOT_TARGET,
-				//BrainOrder.BE_ATTACKED
 				];
 		}
 		
@@ -202,11 +212,17 @@ package com.alex.ai
 		{
 			switch (orderName)
 			{
+				case BrainOrder.START:
+					_memory["phase"] = "thinking";
+					break;
+				case BrainOrder.STOP:
+					_memory["phase"] = "nothing";
+					break;
 				case BrainOrder.GOT_TARGET: 
 					gotTarget(IWorldUnit(orderParam));
 					break;
 				case BrainOrder.BE_ATTACKED:
-					
+					_memory["phase"] = "nothing";
 					break;
 				case "brain_order_life_update": //气血更新
 					
@@ -235,7 +251,7 @@ package com.alex.ai
 			_id = null;
 			_body = null;
 			_purpose = 0;
-			_currentBehaviour = 0;
+			_behaviour = 0;
 			_memory = null;
 			Commander.cancelExecutor(this);
 			_isRelease = true;
@@ -276,14 +292,10 @@ package com.alex.ai
 		private function attackDefenceTarget(targetStatus:Object):void
 		{
 			var canUseSkill:Array = _memory["canUseSkill"] as Array;
-			//for each(var skill:Object in _allSkillDic) {
-			//if (skill.rangeOfHurt.x >= targetStatus.distanceFramMe) {
-			//canUseSkill.push(skill);
-			//}
-			//}
-			if (canUseSkill == null)
-				return;
-			var bestSuitSkill:Object;
+			
+			if (canUseSkill == null) return;
+			
+			var bestSuitSkill:SkillData;
 			for (var i:int = 0; i < canUseSkill.length; i++)
 			{
 				

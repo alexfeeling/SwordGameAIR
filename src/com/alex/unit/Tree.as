@@ -9,6 +9,7 @@ package com.alex.unit
 	import com.alex.core.util.IdMachine;
 	import com.alex.core.component.Position;
 	import com.alex.core.world.World;
+	import com.alex.role.MainRole;
 	import com.alex.unit.AttackableUnit;
 	import com.alex.unit.BaseUnit;
 	import flash.display.Bitmap;
@@ -36,9 +37,10 @@ package com.alex.unit
 		
 		protected function init(vPostion:Position):Tree
 		{
-			this.refresh(IdMachine.getId(Tree), vPostion, PhysicsComponent.make(this, vPostion, 10, 40 * 2, 30 * 2, 100, 100, PhysicsType.SOLID));
+			this.refresh(IdMachine.getId(Tree), vPostion, PhysicsComponent.make(this, vPostion, 20, 40 * 2, 30 * 2, 100, 100, PhysicsType.SOLID));
 			refreshAttribute(AttributeComponent.make(this, 100, 100));
-			this.position.z = 200;
+			//this.position.z = 200;
+			_brain.gotTarget(MainRole.getInstance());
 			return this;
 		}
 		
@@ -72,6 +74,14 @@ package com.alex.unit
 		override public function refreshZ():void
 		{
 			this._body.y = -this._position.z;
+		}
+		
+		override public function gotoNextFrame(passedTime:Number):void 
+		{
+			if (_brain) {
+				_brain.run(passedTime);
+			}
+			super.gotoNextFrame(passedTime);
 		}
 	
 	}

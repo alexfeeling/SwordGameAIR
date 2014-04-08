@@ -59,7 +59,7 @@ package com.alex.unit
 		protected var _isDying:Boolean = false;
 		
 		///电子大脑
-		private var _brain:ElectronicBrain;
+		protected var _brain:ElectronicBrain;
 		
 		public function AttackableUnit()
 		{
@@ -103,6 +103,7 @@ package com.alex.unit
 				{ type:"end" } ]);
 			
 			_brain = ElectronicBrain.make();
+			_brain.init(this, 0);
 			_physicsComponent.setBrain(_brain);
 		}
 		
@@ -172,6 +173,8 @@ package com.alex.unit
 			if (frameData.zImpact)
 				this._physicsComponent.forceImpact(MoveDirection.Z_TOP, frameData.zImpact, true);
 			//this.toDisplayObject().alpha = 0.5;
+			
+			//_brain.executeOrder(BrainOrder.STOP);
 		}
 		
 		/**
@@ -308,16 +311,17 @@ package com.alex.unit
 			}
 			
 			if (_catchingUnit) {
-				if (frameData.catchZ != 0) 
+				if (frameData.catchZ is Number) 
 					_catchingUnit.position.z = _position.z + frameData.catchZ;
 				
-				if (frameData.catchX != 0)
+				if (frameData.catchX is Number) 
 					_catchingUnit.position.globalX = _position.globalX + frameData.catchX * _physicsComponent.faceDirection;
 				
-				if (frameData.catchY != 0)
+				if (frameData.catchY is Number) 
 					_catchingUnit.position.globalY = _position.globalY + frameData.catchY; 
 					
 				this.hurtLockingTarget(frameData);
+				
 				return true;
 			} 
 			return false;
@@ -442,6 +446,14 @@ package com.alex.unit
 					position.z, 80, 60, 80);
 			}
 			return _attackCube;
+		}
+		
+		override public function collide(targetUnit:IWorldUnit, moveDir:int):void 
+		{
+			super.collide(targetUnit, moveDir);
+			if (_brain) {
+				_brain.executeOrder(BrainOrder.START);
+			}
 		}
 	
 	}

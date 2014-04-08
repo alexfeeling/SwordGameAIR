@@ -127,6 +127,7 @@ package com.alex.core.component
 		}
 		
 		public function setBrain(brain:ElectronicBrain):void {
+			if (brain == null) throw "error";
 			_brain = brain;
 		}
 		
@@ -366,6 +367,7 @@ package com.alex.core.component
 				return;
 			}
 			this._isSelfControl = this._isSelfControl && !isLoseControll;
+			
 			//if (this._displayObj is Skill && !this._isSelfControl) {
 			//return;
 			//}
@@ -513,6 +515,17 @@ package com.alex.core.component
 			if (!this._isSelfControl && this._xVelocity == 0 && this._yVelocity == 0)
 			{
 				this._isSelfControl = true;
+				//_brain.executeOrder(BrainOrder.START);
+			}
+			if (_brain) {
+				if (!this._isSelfControl) {
+					_brain.executeOrder(BrainOrder.STOP);
+				} else {
+					_brain.executeOrder(BrainOrder.START);
+				}
+			} else {
+				this.planDistanceX = 0;
+				this.planDistanceY = 0;
 			}
 		}
 		
@@ -570,11 +583,11 @@ package com.alex.core.component
 			else
 			{
 				//============性能测试代码
-				if (this._displayObj is Tree)
-				{
-					this._xVelocity = (Math.random() - 0.5) * 50;
-					this._isSelfControl = false;
-				}
+				//if (this._displayObj is Tree)
+				//{
+					//this._xVelocity = (Math.random() - 0.5) * 50;
+					//this._isSelfControl = false;
+				//}
 			}
 			if (this._isRelease)
 			{
@@ -619,8 +632,10 @@ package com.alex.core.component
 					if (planDistanceY > 0) {//有计划行走
 						distance = Math.min(distance, planDistanceY);
 						planDistanceY -= distance;
+						trace(planDistanceY);
 						if (planDistanceY <= 0) {
-							this.stopMove(MoveDirection.Y_UP);
+							planDistanceY = 0;
+							this.stopMove(MoveDirection.Y_DOWN);
 							if (_brain) _brain.executeOrder(BrainOrder.PLAN_MOVE_Y_FINISH);
 						}
 					}
@@ -640,7 +655,8 @@ package com.alex.core.component
 						distance = Math.min(distance, planDistanceY);
 						planDistanceY -= distance;
 						if (planDistanceY <= 0) {
-							this.stopMove(MoveDirection.Y_DOWN);
+							planDistanceY = 0;
+							this.stopMove(MoveDirection.Y_UP);
 							if (_brain) _brain.executeOrder(BrainOrder.PLAN_MOVE_Y_FINISH);
 						}
 					}
@@ -650,11 +666,11 @@ package com.alex.core.component
 			else
 			{
 				//性能测试代码
-				if (this._displayObj is Tree)
-				{
-				this._isSelfControl = false;
-				this._yVelocity = (Math.random() - 0.5) * 50;
-				}
+				//if (this._displayObj is Tree)
+				//{
+				//this._isSelfControl = false;
+				//this._yVelocity = (Math.random() - 0.5) * 50;
+				//}
 			}
 			if (this._isRelease)
 			{
@@ -800,8 +816,8 @@ package com.alex.core.component
 					} 
 					else if (Math.random() < 0.005) {
 						//性能测试代码
-						if (this._displayObj is Tree)
-							this.forceImpact(MoveDirection.Z_TOP, 100);
+						//if (this._displayObj is Tree)
+							//this.forceImpact(MoveDirection.Z_TOP, 100);
 					}
 				}
 			}
@@ -880,6 +896,8 @@ package com.alex.core.component
 			this._xVelocity = 0;
 			this._yVelocity = 0;
 			this._zVelocity = 0;
+			this.planDistanceX = 0;
+			this.planDistanceY = 0;
 			this._id = null;
 		}
 		

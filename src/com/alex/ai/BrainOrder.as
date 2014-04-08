@@ -12,6 +12,10 @@ package com.alex.ai
 			throw "const error";
 		}
 		
+		public static const START:String = "start";
+		
+		public static const STOP:String = "stop";
+		
 		public static const START_MOVE:String = "brain_order_start_move";
 		public static const STOP_MOVE:String = "brain_order_stop_move";
 		public static const FORCE_STOP_MOVE:String = "brain_order_force_stop_move";
