@@ -1,7 +1,7 @@
 package 
 {
-	import com.alex.game.Game;
-	import com.alex.util.Stats;
+	import alex.game.Game;
+	import alex.util.Stats;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageDisplayState;
